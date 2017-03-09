@@ -1,18 +1,13 @@
 package org.javahispano.jfootball.client;
 
-import com.akjava.gwt.stats.client.Stats;
-import com.akjava.gwt.three.client.gwt.renderers.WebGLRendererParameter;
-import com.akjava.gwt.three.client.js.THREE;
-import com.akjava.gwt.three.client.js.cameras.Camera;
-import com.akjava.gwt.three.client.js.renderers.WebGLRenderer;
-import com.akjava.gwt.three.client.js.renderers.WebGLRenderer.WebGLCanvas;
-import com.akjava.gwt.three.client.js.scenes.Scene;
+import org.javahispano.jfootball.client.application.animations.AnimationDemo;
+
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.logical.shared.ResizeEvent;
-import com.google.gwt.event.logical.shared.ResizeHandler;
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.user.client.ui.Anchor;
+import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -20,112 +15,50 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Jfootball implements EntryPoint {
-
-	private WebGLRenderer renderer;
-
-	protected Timer timer;
-	protected Stats stats;
-
-	protected WebGLCanvas canvas;
-
-	private VerticalPanel main;
-
-	protected int canvasWidth, canvasHeight;
-
-	protected Camera camera;
-	protected int cameraX, cameraY, cameraZ;
-	protected int screenWidth, screenHeight;
-	protected long mouseLast;
-	protected int tmpZoom;
-	protected Scene scene;
-	protected int defaultZoom = 2;
-	protected int minCamera = 5;
-
-	public WebGLCanvas getCanvas() {
-		return canvas;
-	}
+	private DockLayoutPanel center;
+	private AnimationDemo animationDemo;
 
 	@Override
 	public void onModuleLoad() {
-		int width = Window.getClientWidth();
-		int height = Window.getClientHeight();
+		DockLayoutPanel root = new DockLayoutPanel(Unit.PX);
 
-		renderer = THREE.WebGLRenderer(WebGLRendererParameter.create().preserveDrawingBuffer(true));
-		renderer.setSize(width, height);
+		RootLayoutPanel.get().add(root);
 
-		canvas = new WebGLCanvas(renderer);
-		canvas.setClearColorHex(0);
+		center = new DockLayoutPanel(Unit.PX);
 
-		canvas.setWidth("100%");
-		canvas.setHeight("100%");
-		RootLayoutPanel.get().add(canvas);
+		// left-side
+		VerticalPanel side = new VerticalPanel();
+		side.setWidth("100%");
+		side.setStylePrimaryName("side");
+		side.setSpacing(4);
 
-		canvasWidth = width;
-		canvasHeight = height;
-		initialize(renderer, width, height);
+		Label title = new Label("GWT-three.js Examples");
+		title.setStylePrimaryName("header");
 
-		stats = Stats.insertStatsToRootPanel();
-		timer = new Timer() {
-			public void run() {
-				update(renderer);
-				stats.update();
-			}
-		};
+		side.add(title);
 
-		if (!GWT.isScript()) {
-			timer.scheduleRepeating(100);
-		} else {
-			timer.scheduleRepeating(1000 / 60);
-		}
+		Label webgl = new Label("webgl");
+		webgl.setStylePrimaryName("subheader");
+		webgl.setWidth("100%");
+		side.add(webgl);
+		root.addWest(side, 300);
+		root.add(center);
 
-		Window.addResizeHandler(new ResizeHandler() {
-			@Override
-			public void onResize(ResizeEvent event) {
-				int w = canvas.getOffsetWidth();
-				int h = canvas.getOffsetHeight();
-				canvasWidth = w;
-				canvasHeight = h;
-				resized(w, h);
-				renderer.setSize(w, h);
-			}
-		});
+		Label links=new Label("Links");
+		links.setStylePrimaryName("subheader");
+		side.add(links);
+		side.add(new Anchor("Three.js(github)", "https://github.com/mrdoob/three.js/"));
+		side.add(new Anchor("Three.js origin examples", "http://threejs.org/examples/"));
+		side.add(new Anchor("GWT-Three.js(github)", "https://github.com/akjava/gwt-three.js-test"));
+		side.add(new Anchor("GWT-Three.js old examples", "http://akjava.github.io/gwt-three.js-test/ThreeTest.html"));
+		side.add(new Anchor("GWT", "http://www.gwtproject.org/"));
+		
+		animationDemo = new AnimationDemo();
+		animationDemo.start(getPanel());
 	}
-
-	public void initialize(WebGLRenderer renderer, int width, int height) {
-		cameraZ = 100;
-		screenWidth = width;
-		screenHeight = height;
-		// renderer.setClearColorHex(0x333333, 1);
-		canvas.setClearColorHex(0x333333);
-		scene = THREE.Scene();
-		createCamera(scene, width, height);
-
-		initializeOthers(renderer);
-	}
-
-	public void update(WebGLRenderer renderer) {
-		beforeUpdate(renderer);
-		camera.getPosition().set(cameraX, cameraY, cameraZ);
-		renderer.render(scene, camera);
-	}
-
-	private void createCamera(Scene scene, int width, int height) {
-		if (camera != null) {
-			// TODO find update way.
-			scene.remove(camera);
-		}
-		camera = THREE.PerspectiveCamera(35, (double) width / height, 1, 6000);
-		// camera.getPosition().set(0, 0, cameraZ);
-		scene.add(camera);
-	}
-
-	public void resized(int width, int height) {
-		if (width == 0 || height == 0) {// ignore 0 resize.
-			return;
-		}
-		screenWidth = width;
-		screenHeight = height;
-		createCamera(scene, width, height);
+	
+	public Panel getPanel() {
+		return center;
 	}
 
 }

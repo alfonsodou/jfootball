@@ -3,200 +3,197 @@
  */
 package org.javahispano.jfootball.client.application.animations;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.akjava.gwt.three.client.examples.renderers.CSS3DRenderer;
-import com.akjava.gwt.three.client.gwt.core.CameraControler;
-import com.akjava.gwt.three.client.js.renderers.WebGLRenderer;
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.event.dom.client.MouseDownEvent;
-import com.google.gwt.event.dom.client.MouseDownHandler;
-import com.google.gwt.event.dom.client.MouseMoveEvent;
-import com.google.gwt.event.dom.client.MouseMoveHandler;
-import com.google.gwt.event.dom.client.MouseOutEvent;
-import com.google.gwt.event.dom.client.MouseOutHandler;
-import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.dom.client.MouseUpHandler;
-import com.google.gwt.event.dom.client.MouseWheelEvent;
-import com.google.gwt.event.dom.client.MouseWheelHandler;
+import com.akjava.gwt.lib.client.LogUtils;
+import com.google.gwt.animation.client.AnimationScheduler;
+import com.google.gwt.animation.client.AnimationScheduler.AnimationHandle;
+import com.google.gwt.dom.client.Style.Position;
+import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FocusPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.Panel;
+import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
  * @author alfonso
  *
  */
 public abstract class AbstractAnimation implements Animation {
-	protected Timer timer;
-
-	protected int width, height;
-
-	protected CameraControler cameraControle = new CameraControler();
-
-	protected boolean mouseDown;
-
-	protected int mouseDownX;
-	protected int mouseDownY;
-
-	protected WebGLRenderer renderer;
-
-	public void onMouseOut(MouseOutEvent event) {
-		mouseDown = false;
+	private AnimationHandle handler;
+	protected Panel parent;
+	
+	private boolean debugAnimateOneTime;
+	
+	
+	
+	public boolean isDebugAnimateOneTime() {
+		return debugAnimateOneTime;
 	}
 
-	public void onMouseDown(MouseDownEvent event) {
-
-		mouseDown = true;
-		mouseDownX = event.getX();
-		mouseDownY = event.getY();
+	public void setDebugAnimateOneTimeOnly(boolean debugAnimateOneTime) {
+		this.debugAnimateOneTime = debugAnimateOneTime;
 	}
 
-	public void onMouseUp(MouseUpEvent event) {
-		mouseDown = false;
-	}
-
-	public void onMouseWheel(MouseWheelEvent event) {
-
-		cameraControle.doMouseWheel(event.getDeltaY());
-	}
-
-	public void onMouseMove(MouseMoveEvent event) {
-
-		if (event.getNativeButton() == NativeEvent.BUTTON_MIDDLE && mouseDown) {
-			int diffX = event.getX() - mouseDownX;
-			int diffY = event.getY() - mouseDownY;
-			mouseDownX = event.getX();
-			mouseDownY = event.getY();
-
-			cameraControle.incrementRotationX(diffY);
-			cameraControle.incrementRotationY(diffX);
-		}
-	}
-
-	private List<HandlerRegistration> registrations = new ArrayList<HandlerRegistration>();
-
-	protected void addHandlerRegistration(HandlerRegistration handlerRegistration) {
-		registrations.add(handlerRegistration);
+	public Panel getParent() {
+		return parent;
 	}
 
 	@Override
-	public void start(final WebGLRenderer renderer, final int width, final int height, FocusPanel panel) {
-		this.width = width;
-		this.height = height;
-		this.renderer = renderer;
-		HandlerRegistration handlerRegistration = panel.addMouseUpHandler(new MouseUpHandler() {
-
-			@Override
-			public void onMouseUp(MouseUpEvent event) {
-
-				AbstractAnimation.this.onMouseUp(event);
-			}
-		});
-		registrations.add(handlerRegistration);
-
-		handlerRegistration = panel.addMouseWheelHandler(new MouseWheelHandler() {
-			@Override
-			public void onMouseWheel(MouseWheelEvent event) {
-				AbstractAnimation.this.onMouseWheel(event);
-			}
-		});
-
-		registrations.add(handlerRegistration);
-		// hpanel.setFocus(true);
-
-		/*
-		 * panel.addClickHandler(new ClickHandler() {
-		 * 
-		 * @Override public void onClick(ClickEvent event) {
-		 * AbstractAnimation.this.onMouseClick(event); } });
-		 */
-
-		handlerRegistration = panel.addMouseDownHandler(new MouseDownHandler() {
-
-			@Override
-			public void onMouseDown(MouseDownEvent event) {
-				AbstractAnimation.this.onMouseDown(event);
-
-			}
-		});
-		registrations.add(handlerRegistration);
-
-		handlerRegistration = panel.addMouseOutHandler(new MouseOutHandler() {
-
-			@Override
-			public void onMouseOut(MouseOutEvent event) {
-				AbstractAnimation.this.onMouseOut(event);
-			}
-		});
-		registrations.add(handlerRegistration);
-
-		handlerRegistration = panel.addMouseMoveHandler(new MouseMoveHandler() {
-
-			@Override
-			public void onMouseMove(MouseMoveEvent event) {
-				AbstractAnimation.this.onMouseMove(event);
-			}
-		});
-		registrations.add(handlerRegistration);
+	public void start(Panel parent) {
+		this.parent=parent;
+		init();
+		updateGUI();//move gui position;
+		execute(System.currentTimeMillis());
 	}
 
 	@Override
 	public void stop() {
-		if (timer != null) {
-			timer.cancel();
-			timer = null;
+		if(handler!=null){
+			handler.cancel();
 		}
-		if (renderer.gwtGetType().equals("css3d")) {
-			CSS3DRenderer css3r = (CSS3DRenderer) renderer;
-			css3r.gwtClear(); // to avoid show duplicate content.
+		
+		if(parent!=null){
+			parent.clear();
 		}
-
-	}
-
-	public void clearHandlerRegistration() {
-		for (HandlerRegistration r : registrations) {
-			r.removeHandler();
+		
+		if(popup!=null){
+			popup.removeFromParent();
 		}
-		registrations.clear();
+		
+		if(resizeHandler!=null){
+			resizeHandler.removeHandler();
+		}
 	}
 
 	@Override
-	public void startTimer(Timer timer) {
-		stop();
-		this.timer = timer;
-		timer.scheduleRepeating(1000 / 60);
+	public void execute(double timestamp) {
+		if(!debugAnimateOneTime){//for debug,if error happen on animate
+		handler=AnimationScheduler.get().requestAnimationFrame(this);
+		}else{
+			LogUtils.log("debugAnimateOneTime:true only render called one time for debug");
+		}
+		animate(timestamp);
+	}
+	public abstract void animate(double timestamp);
+	public abstract void init();
+	public abstract void onWindowResize();
+	
+	protected PopupPanel popup;
+	private HandlerRegistration resizeHandler;
+	//alternative to dat.GUI
+	
+	/*
+	 * 
+	 * it's better to keep Verticalpanel ,it's hard to use Layout*Panel
+	 * possible problem,if container size changed after showed,usually problem
+	 */
+	protected VerticalPanel addResizeHandlerAndCreateGUIPanel(){
+		popup=new PopupPanel();	//do sync with demo
+		
+		VerticalPanel root=new VerticalPanel();
+		popup.add(root);
+		
+		final VerticalPanel controler=new VerticalPanel();
+		controler.setWidth("320px");//some widget broke,like checkbox without parent size
+		controler.setSpacing(2);
+		
+		root.add(controler);
+		
+		final Button bt=new Button("Close Controls");
+		bt.setWidth("320px");
+		bt.addClickHandler(new ClickHandler() {
+			
+			@Override
+			public void onClick(ClickEvent event) {
+				controler.setVisible(!controler.isVisible());
+				if(controler.isVisible()){
+					bt.setText("Close Controls");
+				}else{
+					bt.setText("Open Controls");
+				}
+				updateGUI();
+			}
+		});
+		
+		root.add(bt);
+		
+		//popup.show();
+		//moveToAroundRightTop(popup);
+		
+		
+		resizeHandler = Window.addResizeHandler(new ResizeHandler() {
+			@Override
+			public void onResize(ResizeEvent event) {
+				onWindowResize();
+				updateGUI();
+			}
+		});
+		
+		return controler;
+	}
+	
+	protected void updateGUI(){
+		if(popup==null){
+			return;
+		}
+		popup.show();//for initial,show first before move
+		moveToAroundRightTop(popup);
+		
+	}
+	
+	/**
+	 * 
+	 * @return double.this value used for calculate ratio,if return Int it's make problem without cast.
+	 * THREE.PerspectiveCamera( 30, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
+	 */
+	public double getWindowInnerWidth(){
+		return getParent().getOffsetWidth();
+	}
+	
+	public double getWindowInnerHeight(){
+		return getParent().getOffsetHeight();
+	}
+	
+	//for attach event,must be focus panel
+	protected FocusPanel createContainerPanel(){
+		FocusPanel panel=new FocusPanel();
+		getParent().add(panel);
+		return panel;
+	}
+	
+	
+	//TODO move up
+	private void moveToAroundRightTop(PopupPanel dialog){
+		int clientWidth=Window.getClientWidth();
+		int scrollTopPos=Window.getScrollTop();
+		int dw=dialog.getOffsetWidth();
+		
+		
+		
+		//LogUtils.log(clientWidth+","+scrollTopPos+","+dw);
+		
+		
+		dialog.setPopupPosition(clientWidth-dw, scrollTopPos+0);
+		
 	}
 
+	protected HTML createAbsoluteHTML(String html, int x, int y) {
+		HTML htmlWidget=new HTML(html);
+		htmlWidget.getElement().getStyle().setPosition(Position.ABSOLUTE);
+		htmlWidget.getElement().getStyle().setLeft(x, Unit.PX);
+		htmlWidget.getElement().getStyle().setTop(y, Unit.PX);
+		return htmlWidget;
+	}
 	@Override
-	public Widget getControler() {
-		return null;
+	public int compareTo(Animation o) {
+		// TODO Auto-generated method stub
+		return this.getName().compareTo(o.getName());
 	}
-
-	public final native void log(JavaScriptObject object)/*-{
-		console.log(object);
-	}-*/;
-
-	public final native void log(String object)/*-{
-		console.log(object);
-	}-*/;
-
-	@Override
-	public boolean isSupportCanvas() {
-		return true;
-	}
-
-	@Override
-	public boolean isSupportWebGL() {
-		return true;
-	}
-
-	@Override
-	public boolean isSupportCSS3D() {
-		return false;
-	}
-
 }
