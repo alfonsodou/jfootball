@@ -3,6 +3,8 @@ package org.javahispano.jfootball.client;
 import org.javahispano.jfootball.client.application.animations.AnimationDemo;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
@@ -44,7 +46,7 @@ public class Jfootball implements EntryPoint {
 		root.addWest(side, 300);
 		root.add(center);
 
-		Label links=new Label("Links");
+		Label links = new Label("Links");
 		links.setStylePrimaryName("subheader");
 		side.add(links);
 		side.add(new Anchor("Three.js(github)", "https://github.com/mrdoob/three.js/"));
@@ -52,11 +54,18 @@ public class Jfootball implements EntryPoint {
 		side.add(new Anchor("GWT-Three.js(github)", "https://github.com/akjava/gwt-three.js-test"));
 		side.add(new Anchor("GWT-Three.js old examples", "http://akjava.github.io/gwt-three.js-test/ThreeTest.html"));
 		side.add(new Anchor("GWT", "http://www.gwtproject.org/"));
-		
-		animationDemo = new AnimationDemo();
-		animationDemo.start(getPanel());
+
+		Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+
+			@Override
+			public void execute() {
+
+				animationDemo = new AnimationDemo();
+				animationDemo.start(getPanel());
+			}
+		});
 	}
-	
+
 	public Panel getPanel() {
 		return center;
 	}
