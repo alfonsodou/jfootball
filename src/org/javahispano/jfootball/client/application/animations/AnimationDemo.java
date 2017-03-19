@@ -5,8 +5,6 @@ package org.javahispano.jfootball.client.application.animations;
 
 import com.akjava.gwt.stats.client.Stats;
 import com.akjava.gwt.three.client.gwt.GWTParamUtils;
-import com.akjava.gwt.three.client.gwt.extras.Uniforms;
-import com.akjava.gwt.three.client.gwt.materials.MeshLambertMaterialParameter;
 import com.akjava.gwt.three.client.java.utils.GWTThreeUtils;
 import com.akjava.gwt.three.client.js.THREE;
 import com.akjava.gwt.three.client.js.cameras.PerspectiveCamera;
@@ -15,13 +13,11 @@ import com.akjava.gwt.three.client.js.core.Object3D;
 import com.akjava.gwt.three.client.js.extras.geometries.BoxGeometry;
 import com.akjava.gwt.three.client.js.extras.geometries.SphereGeometry;
 import com.akjava.gwt.three.client.js.lights.DirectionalLight;
-import com.akjava.gwt.three.client.js.lights.Light;
 import com.akjava.gwt.three.client.js.materials.MeshPhongMaterial;
 import com.akjava.gwt.three.client.js.objects.Mesh;
 import com.akjava.gwt.three.client.js.renderers.WebGLRenderer;
 import com.akjava.gwt.three.client.js.scenes.Scene;
 import com.akjava.gwt.three.client.js.textures.Texture;
-import com.akjava.gwt.threejsexamples.client.resources.Bundles;
 import com.google.gwt.user.client.ui.FocusPanel;
 
 /**
@@ -41,19 +37,7 @@ public class AnimationDemo extends AbstractAnimation {
 	}
 
 	public void render(double now) {
-		double timer = now * 0.0001;
-		
-		camera.getPosition().setX(Math.cos( timer ) * 50);//camera.position.x = Math.cos( timer ) * 800;
-		camera.getPosition().setZ(Math.sin( timer ) * 50);//camera.position.z = Math.sin( timer ) * 800;
-
-		camera.lookAt( scene.getPosition());//camera.lookAt( scene.position );
-		
-		Object3D object = scene.getChildren().get(0);
-
-		//object.getRotation().setZ(timer * 2.5);
-		//object.getRotation().setX(timer * 2.5);// object.rotation.x = timer * 5;
-		//object.getRotation().setY(timer * 2.5);// object.rotation.y = timer *
-												// 2.5;
+		camera.lookAt( scene.getPosition() );
 
 		renderer.render(scene, camera);
 	}
@@ -73,8 +57,19 @@ public class AnimationDemo extends AbstractAnimation {
 
 	@Override
 	public void init() {
-		// scene
+		FocusPanel focusPanel = new FocusPanel();
+		getParent().add(focusPanel);
 
+		/*
+		 * no need make dummy html panel? HTMLPanel div=new HTMLPanel("");
+		 * div.getElement().appendChild(renderer.getDomElement());
+		 * focusPanel.add(div);
+		 */
+
+		int width = getParent().getOffsetWidth();
+		int height = getParent().getOffsetHeight();
+
+		// scene
 		scene = THREE.Scene();
 
 		scene.setFog(THREE.Fog( 0xcce0ff, 500, 10000 ));
@@ -123,7 +118,7 @@ public class AnimationDemo extends AbstractAnimation {
 		
 		// sphere
 
-		SphereGeometry ballGeo = THREE.SphereGeometry( cloth.ballSize, 20, 20 );//var ballGeo = new THREE.SphereGeometry( ballSize, 20, 20 );
+		SphereGeometry ballGeo = THREE.SphereGeometry( 60, 20, 20 );//var ballGeo = new THREE.SphereGeometry( ballSize, 20, 20 );
 		MeshPhongMaterial ballMaterial = THREE.MeshPhongMaterial( GWTParamUtils.MeshPhongMaterial().color(0xffffff));//		var ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 
 		sphere = THREE.Mesh( ballGeo, ballMaterial );//		sphere = new THREE.Mesh( ballGeo, ballMaterial );
@@ -196,7 +191,7 @@ public class AnimationDemo extends AbstractAnimation {
 		renderer.setClearColor( scene.getFog().getColor() );//renderer.setClearColor( scene.fog.color );
 
 		
-		container.getElement().appendChild(renderer.getDomElement());
+		focusPanel.getElement().appendChild(renderer.getDomElement());
 
 		renderer.setGammaInput(true);//renderer.gammaInput = true;
 		renderer.setGammaOutput(true);//renderer.gammaOutput = true;
@@ -207,55 +202,12 @@ public class AnimationDemo extends AbstractAnimation {
 
 		stats = Stats.create();
 		stats.setPosition(0, 0);
-		container.getElement().appendChild(stats.domElement());
+		focusPanel.getElement().appendChild(stats.domElement());
 
-		container.add(createAbsoluteHTML("Simple Cloth Simulation<br>Verlet integration with Constrains relaxation"
-				,100,10));
 
 		//window.addEventListener( 'resize', onWindowResize, false );
 
-		sphere.setVisible(false);
-
-		
-		
-		// setup panels
-		// need focusPanel to get events
-		FocusPanel focusPanel = new FocusPanel();
-		getParent().add(focusPanel);
-
-		/*
-		 * no need make dummy html panel? HTMLPanel div=new HTMLPanel("");
-		 * div.getElement().appendChild(renderer.getDomElement());
-		 * focusPanel.add(div);
-		 */
-
-		int width = getParent().getOffsetWidth();
-		int height = getParent().getOffsetHeight();
-
-		// setup renderer
-		renderer = THREE.WebGLRenderer();
-
-		focusPanel.getElement().appendChild(renderer.getDomElement());
-
-		renderer.setSize(width, height);
-		renderer.setClearColor(0xffffff, 1);
-
-		scene = THREE.Scene();
-		camera = THREE.PerspectiveCamera(35, (double) width / height, .1, 10000);
-		scene.add(camera);
-
-		camera.getPosition().setZ(20);
-		//camera.getPosition().setX(5);
-		//camera.getPosition().setY(5);
-
-		final Mesh mesh = THREE.Mesh(THREE.BoxGeometry(5, 5, 5),
-				THREE.MeshLambertMaterial(MeshLambertMaterialParameter.create().color(0xff0000)));
-		scene.add(mesh);
-
-		final Light light = THREE.PointLight(0xffffff);
-		light.setPosition(10, 0, 10);
-		scene.add(light);
-
+		//sphere.setVisible(false);
 	}
 
 	public void onWindowResize() {
