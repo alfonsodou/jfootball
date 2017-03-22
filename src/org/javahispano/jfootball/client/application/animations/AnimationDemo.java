@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.akjava.gwt.bvh.client.BoxData;
 import com.akjava.gwt.lib.client.IStorageControler;
+import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.StorageControler;
 import com.akjava.gwt.stats.client.Stats;
 import com.akjava.gwt.three.client.gwt.GWTParamUtils;
@@ -25,6 +26,14 @@ import com.akjava.gwt.three.client.js.objects.Mesh;
 import com.akjava.gwt.three.client.js.renderers.WebGLRenderer;
 import com.akjava.gwt.three.client.js.scenes.Scene;
 import com.akjava.gwt.three.client.js.textures.Texture;
+import com.akjava.lib.common.utils.Benchmark;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
+import com.google.gwt.http.client.Response;
+import com.google.gwt.http.client.URL;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.FocusPanel;
 
 /**
@@ -39,12 +48,12 @@ public class AnimationDemo extends AbstractAnimation {
 
 	@Override
 	public void animate(double timestamp) {
-		//renderer.render(scene, camera);
+		// renderer.render(scene, camera);
 		render(timestamp);
 	}
 
 	public void render(double now) {
-		camera.lookAt( scene.getPosition() );
+		camera.lookAt(scene.getPosition());
 
 		renderer.render(scene, camera);
 	}
@@ -67,9 +76,11 @@ public class AnimationDemo extends AbstractAnimation {
 	private Object3D rootGroup, boneContainer, backgroundContainer;
 	private Map<String, BoxData> boxDatas;
 	private IStorageControler storageControler;
-	
+
 	@Override
 	public void init() {
+		addResizedHandler();
+
 		FocusPanel focusPanel = new FocusPanel();
 		getParent().add(focusPanel);
 
@@ -85,149 +96,273 @@ public class AnimationDemo extends AbstractAnimation {
 		// scene
 		scene = THREE.Scene();
 
-		scene.setFog(THREE.Fog( 0xcce0ff, 500, 10000 ));
-		
+		scene.setFog(THREE.Fog(0xcce0ff, 500, 10000));
+
 		// camera
 
-		camera = THREE.PerspectiveCamera( 30, getWindowInnerWidth() / getWindowInnerHeight(), 1, 10000 );
-		camera.getPosition().setY(50) ;
+		camera = THREE.PerspectiveCamera(30, getWindowInnerWidth() / getWindowInnerHeight(), 1, 10000);
+		camera.getPosition().setY(50);
 		camera.getPosition().setZ(1500);
-		scene.add( camera );
-		
+		scene.add(camera);
+
 		// lights
 
 		DirectionalLight light;
-		//materials;
+		// materials;
 
-		scene.add(THREE.AmbientLight( 0x666666 ) );
-		
-		light = THREE.DirectionalLight( 0xdfebff, 1.75 );
-		light.getPosition().set( 50, 200, 100 );
-		light.getPosition().multiplyScalar( 1.3 );
+		scene.add(THREE.AmbientLight(0x666666));
+
+		light = THREE.DirectionalLight(0xdfebff, 1.75);
+		light.getPosition().set(50, 200, 100);
+		light.getPosition().multiplyScalar(1.3);
 
 		light.setCastShadow(true);
-		//light.shadowCameraVisible = true;
+		// light.shadowCameraVisible = true;
 
-		
 		light.setShadowMapWidth(1024);
-		//light.getShadow().getMapSize().setWidth(1024);
+		// light.getShadow().getMapSize().setWidth(1024);
 		light.setShadowMapHeight(1024);
-		//light.getShadow().getMapSize().setHeight(1024);
+		// light.getShadow().getMapSize().setHeight(1024);
 		double d = 300;
 
-		
-		//DirectionalLight return use OrthographicCamera;
-		
-		/*light.getShadow().getCamera().gwtCastOrthographicCamera().setLeft(-d);
-		light.getShadow().getCamera().gwtCastOrthographicCamera().setRight(d);
-		light.getShadow().getCamera().gwtCastOrthographicCamera().setTop(d);
-		light.getShadow().getCamera().gwtCastOrthographicCamera().setBottom(-d);
-		
-		light.getShadow().getCamera().gwtCastOrthographicCamera().setFar(1000);
-		*/
-		
+		// DirectionalLight return use OrthographicCamera;
 
-		scene.add( light );
-		
+		/*
+		 * light.getShadow().getCamera().gwtCastOrthographicCamera().setLeft(-d)
+		 * ;
+		 * light.getShadow().getCamera().gwtCastOrthographicCamera().setRight(d)
+		 * ;
+		 * light.getShadow().getCamera().gwtCastOrthographicCamera().setTop(d);
+		 * light.getShadow().getCamera().gwtCastOrthographicCamera().setBottom(-
+		 * d);
+		 * 
+		 * light.getShadow().getCamera().gwtCastOrthographicCamera().setFar(1000
+		 * );
+		 */
+
+		scene.add(light);
+
 		// sphere
 
-		SphereGeometry ballGeo = THREE.SphereGeometry( 60, 20, 20 );//var ballGeo = new THREE.SphereGeometry( ballSize, 20, 20 );
-		MeshPhongMaterial ballMaterial = THREE.MeshPhongMaterial( GWTParamUtils.MeshPhongMaterial().color(0xffffff));//		var ballMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+		SphereGeometry ballGeo = THREE.SphereGeometry(60, 20, 20);// var ballGeo
+																	// = new
+																	// THREE.SphereGeometry(
+																	// ballSize,
+																	// 20, 20 );
+		MeshPhongMaterial ballMaterial = THREE.MeshPhongMaterial(GWTParamUtils.MeshPhongMaterial().color(0xffffff));// var
+																													// ballMaterial
+																													// =
+																													// new
+																													// THREE.MeshPhongMaterial(
+																													// {
+																													// color:
+																													// 0xffffff
+																													// }
+																													// );
 
-		sphere = THREE.Mesh( ballGeo, ballMaterial );//		sphere = new THREE.Mesh( ballGeo, ballMaterial );
-		sphere.setCastShadow(true);//		sphere.castShadow = true;
-		sphere.setReceiveShadow(true);//		sphere.receiveShadow = true;
-		scene.add( sphere );
+		sphere = THREE.Mesh(ballGeo, ballMaterial);// sphere = new THREE.Mesh(
+													// ballGeo, ballMaterial );
+		sphere.setCastShadow(true);// sphere.castShadow = true;
+		sphere.setReceiveShadow(true);// sphere.receiveShadow = true;
+		scene.add(sphere);
 
-		
 		// ground
 
-		Texture groundTexture = THREE.TextureLoader().load( "textures/terrain/grasslight-big.jpg" );//var groundTexture = THREE.ImageUtils.loadTexture( "textures/terrain/grasslight-big.jpg" );
-		groundTexture.setWrapS(THREE.RepeatWrapping);//groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
+		Texture groundTexture = THREE.TextureLoader().load("textures/terrain/grasslight-big.jpg");// var
+																									// groundTexture
+																									// =
+																									// THREE.ImageUtils.loadTexture(
+																									// "textures/terrain/grasslight-big.jpg"
+																									// );
+		groundTexture.setWrapS(THREE.RepeatWrapping);// groundTexture.wrapS =
+														// groundTexture.wrapT =
+														// THREE.RepeatWrapping;
 		groundTexture.setWrapT(THREE.RepeatWrapping);
-		groundTexture.getRepeat().set( 25, 25 );//groundTexture.repeat.set( 25, 25 );
-		groundTexture.setAnisotropy(16);//groundTexture.anisotropy = 16;
-		
-		MeshPhongMaterial groundMaterial = THREE.MeshPhongMaterial( GWTParamUtils.MeshPhongMaterial().color(0xffffff).specular(0x111111).map(groundTexture) );//var groundMaterial = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, map: groundTexture } );
+		groundTexture.getRepeat().set(25, 25);// groundTexture.repeat.set( 25,
+												// 25 );
+		groundTexture.setAnisotropy(16);// groundTexture.anisotropy = 16;
 
-		Mesh mesh = THREE.Mesh( THREE.PlaneBufferGeometry( 20000, 20000 ), groundMaterial );//var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 20000, 20000 ), groundMaterial );
-		mesh.getPosition().setY(-250);//mesh.position.y = -250;
-		mesh.getRotation().setX(- Math.PI / 2);//mesh.rotation.x = - Math.PI / 2;
-		mesh.setReceiveShadow(true);//mesh.receiveShadow = true;
-		scene.add( mesh );
+		MeshPhongMaterial groundMaterial = THREE.MeshPhongMaterial(
+				GWTParamUtils.MeshPhongMaterial().color(0xffffff).specular(0x111111).map(groundTexture));// var
+																											// groundMaterial
+																											// =
+																											// new
+																											// THREE.MeshPhongMaterial(
+																											// {
+																											// color:
+																											// 0xffffff,
+																											// specular:
+																											// 0x111111,
+																											// map:
+																											// groundTexture
+																											// }
+																											// );
+
+		Mesh mesh = THREE.Mesh(THREE.PlaneBufferGeometry(20000, 20000), groundMaterial);// var
+																						// mesh
+																						// =
+																						// new
+																						// THREE.Mesh(
+																						// new
+																						// THREE.PlaneBufferGeometry(
+																						// 20000,
+																						// 20000
+																						// ),
+																						// groundMaterial
+																						// );
+		mesh.getPosition().setY(-250);// mesh.position.y = -250;
+		mesh.getRotation().setX(-Math.PI / 2);// mesh.rotation.x = - Math.PI /
+												// 2;
+		mesh.setReceiveShadow(true);// mesh.receiveShadow = true;
+		scene.add(mesh);
 
 		// poles
 
-		BoxGeometry poleGeo = THREE.BoxGeometry( 5, 375, 5 );//var poleGeo = new THREE.BoxGeometry( 5, 375, 5 );
-		MeshPhongMaterial poleMat = THREE.MeshPhongMaterial( GWTParamUtils.MeshPhongMaterial().color(0xffffff).specular(0x111111).shininess(100) );//var poleMat = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shiness: 100 } );
+		BoxGeometry poleGeo = THREE.BoxGeometry(5, 375, 5);// var poleGeo = new
+															// THREE.BoxGeometry(
+															// 5, 375, 5 );
+		MeshPhongMaterial poleMat = THREE
+				.MeshPhongMaterial(GWTParamUtils.MeshPhongMaterial().color(0xffffff).specular(0x111111).shininess(100));// var
+																														// poleMat
+																														// =
+																														// new
+																														// THREE.MeshPhongMaterial(
+																														// {
+																														// color:
+																														// 0xffffff,
+																														// specular:
+																														// 0x111111,
+																														// shiness:
+																														// 100
+																														// }
+																														// );
 
-		mesh = THREE.Mesh( poleGeo, poleMat );//var mesh = new THREE.Mesh( poleGeo, poleMat );
-		mesh.getPosition().setX(-125);//mesh.position.x = -125;
-		mesh.getPosition().setY(-62);//mesh.position.y = -62;
-		mesh.setReceiveShadow(true);//mesh.receiveShadow = true;
-		mesh.setCastShadow(true);//mesh.castShadow = true;
-		scene.add( mesh );
+		mesh = THREE.Mesh(poleGeo, poleMat);// var mesh = new THREE.Mesh(
+											// poleGeo, poleMat );
+		mesh.getPosition().setX(-125);// mesh.position.x = -125;
+		mesh.getPosition().setY(-62);// mesh.position.y = -62;
+		mesh.setReceiveShadow(true);// mesh.receiveShadow = true;
+		mesh.setCastShadow(true);// mesh.castShadow = true;
+		scene.add(mesh);
 
-		mesh = THREE.Mesh( poleGeo, poleMat );//var mesh = new THREE.Mesh( poleGeo, poleMat );
-		mesh.getPosition().setX(125);//mesh.position.x = 125;
-		mesh.getPosition().setY(-62);//mesh.position.y = -62;
-		mesh.setReceiveShadow(true);//mesh.receiveShadow = true;
-		mesh.setCastShadow(true);//mesh.castShadow = true;
-		scene.add( mesh );
+		mesh = THREE.Mesh(poleGeo, poleMat);// var mesh = new THREE.Mesh(
+											// poleGeo, poleMat );
+		mesh.getPosition().setX(125);// mesh.position.x = 125;
+		mesh.getPosition().setY(-62);// mesh.position.y = -62;
+		mesh.setReceiveShadow(true);// mesh.receiveShadow = true;
+		mesh.setCastShadow(true);// mesh.castShadow = true;
+		scene.add(mesh);
 
-		mesh = THREE.Mesh( THREE.BoxGeometry( 255, 5, 5 ), poleMat );//var mesh = new THREE.Mesh( new THREE.BoxGeometry( 255, 5, 5 ), poleMat );
-		mesh.getPosition().setY(-250 + 750/2);//mesh.position.y = -250 + 750/2;
-		mesh.getPosition().setX(0);//mesh.position.x = 0;
-		mesh.setReceiveShadow(true);//mesh.receiveShadow = true;
-		mesh.setCastShadow(true);//mesh.castShadow = true;
-		scene.add( mesh );
+		mesh = THREE.Mesh(THREE.BoxGeometry(255, 5, 5), poleMat);// var mesh =
+																	// new
+																	// THREE.Mesh(
+																	// new
+																	// THREE.BoxGeometry(
+																	// 255, 5, 5
+																	// ),
+																	// poleMat
+																	// );
+		mesh.getPosition().setY(-250 + 750 / 2);// mesh.position.y = -250 +
+												// 750/2;
+		mesh.getPosition().setX(0);// mesh.position.x = 0;
+		mesh.setReceiveShadow(true);// mesh.receiveShadow = true;
+		mesh.setCastShadow(true);// mesh.castShadow = true;
+		scene.add(mesh);
 
-		BoxGeometry gg = THREE.BoxGeometry( 10, 10, 10 );//var gg = new THREE.BoxGeometry( 10, 10, 10 );
-		mesh = THREE.Mesh( gg, poleMat );//var mesh = new THREE.Mesh( gg, poleMat );
-		mesh.getPosition().setY(-250);//mesh.position.y = -250;
-		mesh.getPosition().setX(125);//mesh.position.x = 125;
-		mesh.setReceiveShadow(true);//mesh.receiveShadow = true;
-		mesh.setCastShadow(true);//mesh.castShadow = true;
-		scene.add( mesh );
+		BoxGeometry gg = THREE.BoxGeometry(10, 10, 10);// var gg = new
+														// THREE.BoxGeometry(
+														// 10, 10, 10 );
+		mesh = THREE.Mesh(gg, poleMat);// var mesh = new THREE.Mesh( gg, poleMat
+										// );
+		mesh.getPosition().setY(-250);// mesh.position.y = -250;
+		mesh.getPosition().setX(125);// mesh.position.x = 125;
+		mesh.setReceiveShadow(true);// mesh.receiveShadow = true;
+		mesh.setCastShadow(true);// mesh.castShadow = true;
+		scene.add(mesh);
 
-		mesh = THREE.Mesh( gg, poleMat );//var mesh = new THREE.Mesh( gg, poleMat );
-		mesh.getPosition().setY(-250);//mesh.position.y = -250;
-		mesh.getPosition().setX(-125);//mesh.position.x = -125;
-		mesh.setReceiveShadow(true);//mesh.receiveShadow = true;
-		mesh.setCastShadow(true);//mesh.castShadow = true;
-		scene.add( mesh );
+		mesh = THREE.Mesh(gg, poleMat);// var mesh = new THREE.Mesh( gg, poleMat
+										// );
+		mesh.getPosition().setY(-250);// mesh.position.y = -250;
+		mesh.getPosition().setX(-125);// mesh.position.x = -125;
+		mesh.setReceiveShadow(true);// mesh.receiveShadow = true;
+		mesh.setCastShadow(true);// mesh.castShadow = true;
+		scene.add(mesh);
 
 		//
-		renderer = THREE.WebGLRenderer( GWTParamUtils.WebGLRenderer().antialias(true) );//renderer = new THREE.WebGLRenderer( { antialias: true } );
-		renderer.setPixelRatio( GWTThreeUtils.getWindowDevicePixelRatio() );
-		renderer.setSize((int)getWindowInnerWidth()  , (int)getWindowInnerHeight());
-		renderer.setClearColor( scene.getFog().getColor() );//renderer.setClearColor( scene.fog.color );
+		renderer = THREE.WebGLRenderer(GWTParamUtils.WebGLRenderer().antialias(true));// renderer
+																						// =
+																						// new
+																						// THREE.WebGLRenderer(
+																						// {
+																						// antialias:
+																						// true
+																						// }
+																						// );
+		renderer.setPixelRatio(GWTThreeUtils.getWindowDevicePixelRatio());
+		renderer.setSize((int) getWindowInnerWidth(), (int) getWindowInnerHeight());
+		renderer.setClearColor(scene.getFog().getColor());// renderer.setClearColor(
+															// scene.fog.color
+															// );
 
-		
 		focusPanel.getElement().appendChild(renderer.getDomElement());
 
-		renderer.setGammaInput(true);//renderer.gammaInput = true;
-		renderer.setGammaOutput(true);//renderer.gammaOutput = true;
+		renderer.setGammaInput(true);// renderer.gammaInput = true;
+		renderer.setGammaOutput(true);// renderer.gammaOutput = true;
 
-		//renderer.setShadowMapEnabled(true);//renderer.shadowMapEnabled = true;
+		// renderer.setShadowMapEnabled(true);//renderer.shadowMapEnabled =
+		// true;
 		renderer.getShadowMap().setEnabled(true);
 		//
 
 		// Stats
-		/* stats = Stats.create();
-		stats.setPosition(0, 0);
-		focusPanel.getElement().appendChild(stats.domElement()); */
+		/*
+		 * stats = Stats.create(); stats.setPosition(0, 0);
+		 * focusPanel.getElement().appendChild(stats.domElement());
+		 */
 
+		// window.addEventListener( 'resize', onWindowResize, false );
 
-		//window.addEventListener( 'resize', onWindowResize, false );
+		// sphere.setVisible(false);
 
-		//sphere.setVisible(false);
-		
 		storageControler = new StorageControler();
 
-		addResizedHandler();
+		boxDatas = new HashMap<String, BoxData>();
+
+		doLoad("14_08");
 	}
 
+	protected void doLoad(String itemText) {
+		String[] g_n = itemText.split("_");
+		loadBVH("bvhs/" + g_n[0] + "/" + itemText + ".bvh");
+	}
+
+	private void loadBVH(String path) {
+		Benchmark.start("load");
+		RequestBuilder builder = new RequestBuilder(RequestBuilder.GET, URL.encode(path));
+		try {
+			builder.sendRequest(null, new RequestCallback() {
+
+				@Override
+				public void onResponseReceived(Request request, Response response) {
+
+					String bvhText = response.getText();
+					// log("loaded:"+Benchmark.end("load"));
+					// useless spend allmost time with request and spliting.
+					parseBVH(bvhText);
+				}
+
+				@Override
+				public void onError(Request request, Throwable exception) {
+					Window.alert("load faild:");
+				}
+			});
+		} catch (RequestException e) {
+			LogUtils.log(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	
 	public void onWindowResize() {
 		SCREEN_WIDTH = getWindowInnerWidth();
 		SCREEN_HEIGHT = getWindowInnerHeight();
