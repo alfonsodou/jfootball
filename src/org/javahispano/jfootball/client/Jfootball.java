@@ -30,7 +30,6 @@ public class Jfootball implements EntryPoint {
 	private Object3D rootGroup, boneContainer, backgroundContainer;
 	private Map<String, BoxData> boxDatas;
 
-
 	@Override
 	public void onModuleLoad() {
 		root = new DockLayoutPanel(Unit.PX);

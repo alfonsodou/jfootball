@@ -3,6 +3,12 @@
  */
 package org.javahispano.jfootball.client.application.animations;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.akjava.gwt.bvh.client.BoxData;
+import com.akjava.gwt.lib.client.IStorageControler;
+import com.akjava.gwt.lib.client.StorageControler;
 import com.akjava.gwt.stats.client.Stats;
 import com.akjava.gwt.three.client.gwt.GWTParamUtils;
 import com.akjava.gwt.three.client.java.utils.GWTThreeUtils;
@@ -14,6 +20,7 @@ import com.akjava.gwt.three.client.js.extras.geometries.BoxGeometry;
 import com.akjava.gwt.three.client.js.extras.geometries.SphereGeometry;
 import com.akjava.gwt.three.client.js.lights.DirectionalLight;
 import com.akjava.gwt.three.client.js.materials.MeshPhongMaterial;
+import com.akjava.gwt.three.client.js.math.Vector3;
 import com.akjava.gwt.three.client.js.objects.Mesh;
 import com.akjava.gwt.three.client.js.renderers.WebGLRenderer;
 import com.akjava.gwt.three.client.js.scenes.Scene;
@@ -55,6 +62,12 @@ public class AnimationDemo extends AbstractAnimation {
 	private DirectionalLight light;
 	private Object3D object;
 
+	/* BVH */
+	private Map<String, Vector3> boneSizeMap = new HashMap<String, Vector3>();
+	private Object3D rootGroup, boneContainer, backgroundContainer;
+	private Map<String, BoxData> boxDatas;
+	private IStorageControler storageControler;
+	
 	@Override
 	public void init() {
 		FocusPanel focusPanel = new FocusPanel();
@@ -200,14 +213,19 @@ public class AnimationDemo extends AbstractAnimation {
 		renderer.getShadowMap().setEnabled(true);
 		//
 
-		stats = Stats.create();
+		// Stats
+		/* stats = Stats.create();
 		stats.setPosition(0, 0);
-		focusPanel.getElement().appendChild(stats.domElement());
+		focusPanel.getElement().appendChild(stats.domElement()); */
 
 
 		//window.addEventListener( 'resize', onWindowResize, false );
 
 		//sphere.setVisible(false);
+		
+		storageControler = new StorageControler();
+
+		addResizedHandler();
 	}
 
 	public void onWindowResize() {

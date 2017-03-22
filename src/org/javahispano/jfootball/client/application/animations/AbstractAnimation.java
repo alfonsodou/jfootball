@@ -28,11 +28,9 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public abstract class AbstractAnimation implements Animation {
 	private AnimationHandle handler;
 	protected Panel parent;
-	
+
 	private boolean debugAnimateOneTime;
-	
-	
-	
+
 	public boolean isDebugAnimateOneTime() {
 		return debugAnimateOneTime;
 	}
@@ -47,87 +45,100 @@ public abstract class AbstractAnimation implements Animation {
 
 	@Override
 	public void start(Panel parent) {
-		this.parent=parent;
+		this.parent = parent;
 		init();
-		updateGUI();//move gui position;
+		updateGUI();// move gui position;
 		execute(System.currentTimeMillis());
 	}
 
 	@Override
 	public void stop() {
-		if(handler!=null){
+		if (handler != null) {
 			handler.cancel();
 		}
-		
-		if(parent!=null){
+
+		if (parent != null) {
 			parent.clear();
 		}
-		
-		if(popup!=null){
+
+		if (popup != null) {
 			popup.removeFromParent();
 		}
-		
-		if(resizeHandler!=null){
+
+		if (resizeHandler != null) {
 			resizeHandler.removeHandler();
 		}
 	}
 
 	@Override
 	public void execute(double timestamp) {
-		if(!debugAnimateOneTime){//for debug,if error happen on animate
-		handler=AnimationScheduler.get().requestAnimationFrame(this);
-		}else{
+		if (!debugAnimateOneTime) {// for debug,if error happen on animate
+			handler = AnimationScheduler.get().requestAnimationFrame(this);
+		} else {
 			LogUtils.log("debugAnimateOneTime:true only render called one time for debug");
 		}
 		animate(timestamp);
 	}
+
 	public abstract void animate(double timestamp);
+
 	public abstract void init();
+
 	public abstract void onWindowResize();
-	
+
 	protected PopupPanel popup;
 	private HandlerRegistration resizeHandler;
-	//alternative to dat.GUI
-	
+	// alternative to dat.GUI
+
+	protected void addResizedHandler() {
+		resizeHandler = Window.addResizeHandler(new ResizeHandler() {
+			@Override
+			public void onResize(ResizeEvent event) {
+				onWindowResize();
+				//updateGUI();
+			}
+		});
+	}
+
 	/*
 	 * 
-	 * it's better to keep Verticalpanel ,it's hard to use Layout*Panel
-	 * possible problem,if container size changed after showed,usually problem
+	 * it's better to keep Verticalpanel ,it's hard to use Layout*Panel possible
+	 * problem,if container size changed after showed,usually problem
 	 */
-	protected VerticalPanel addResizeHandlerAndCreateGUIPanel(){
-		popup=new PopupPanel();	//do sync with demo
-		
-		VerticalPanel root=new VerticalPanel();
+	protected VerticalPanel addResizeHandlerAndCreateGUIPanel() {
+		popup = new PopupPanel(); // do sync with demo
+
+		VerticalPanel root = new VerticalPanel();
 		popup.add(root);
-		
-		final VerticalPanel controler=new VerticalPanel();
-		controler.setWidth("320px");//some widget broke,like checkbox without parent size
+
+		final VerticalPanel controler = new VerticalPanel();
+		controler.setWidth("320px");// some widget broke,like checkbox without
+									// parent size
 		controler.setSpacing(2);
-		
+
 		root.add(controler);
-		
-		final Button bt=new Button("Close Controls");
+
+		final Button bt = new Button("Close Controls");
 		bt.setWidth("320px");
 		bt.addClickHandler(new ClickHandler() {
-			
+
 			@Override
 			public void onClick(ClickEvent event) {
 				controler.setVisible(!controler.isVisible());
-				if(controler.isVisible()){
+				if (controler.isVisible()) {
 					bt.setText("Close Controls");
-				}else{
+				} else {
 					bt.setText("Open Controls");
 				}
 				updateGUI();
 			}
 		});
-		
+
 		root.add(bt);
-		
-		//popup.show();
-		//moveToAroundRightTop(popup);
-		
-		
+
+		// popup.show();
+		// moveToAroundRightTop(popup);
+
 		resizeHandler = Window.addResizeHandler(new ResizeHandler() {
 			@Override
 			public void onResize(ResizeEvent event) {
@@ -135,62 +146,60 @@ public abstract class AbstractAnimation implements Animation {
 				updateGUI();
 			}
 		});
-		
+
 		return controler;
 	}
-	
-	protected void updateGUI(){
-		if(popup==null){
+
+	protected void updateGUI() {
+		if (popup == null) {
 			return;
 		}
-		popup.show();//for initial,show first before move
+		popup.show();// for initial,show first before move
 		moveToAroundRightTop(popup);
-		
+
 	}
-	
+
 	/**
 	 * 
-	 * @return double.this value used for calculate ratio,if return Int it's make problem without cast.
-	 * THREE.PerspectiveCamera( 30, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
+	 * @return double.this value used for calculate ratio,if return Int it's
+	 *         make problem without cast. THREE.PerspectiveCamera( 30,
+	 *         SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
 	 */
-	public double getWindowInnerWidth(){
+	public double getWindowInnerWidth() {
 		return getParent().getOffsetWidth();
 	}
-	
-	public double getWindowInnerHeight(){
+
+	public double getWindowInnerHeight() {
 		return getParent().getOffsetHeight();
 	}
-	
-	//for attach event,must be focus panel
-	protected FocusPanel createContainerPanel(){
-		FocusPanel panel=new FocusPanel();
+
+	// for attach event,must be focus panel
+	protected FocusPanel createContainerPanel() {
+		FocusPanel panel = new FocusPanel();
 		getParent().add(panel);
 		return panel;
 	}
-	
-	
-	//TODO move up
-	private void moveToAroundRightTop(PopupPanel dialog){
-		int clientWidth=Window.getClientWidth();
-		int scrollTopPos=Window.getScrollTop();
-		int dw=dialog.getOffsetWidth();
-		
-		
-		
-		//LogUtils.log(clientWidth+","+scrollTopPos+","+dw);
-		
-		
-		dialog.setPopupPosition(clientWidth-dw, scrollTopPos+0);
-		
+
+	// TODO move up
+	private void moveToAroundRightTop(PopupPanel dialog) {
+		int clientWidth = Window.getClientWidth();
+		int scrollTopPos = Window.getScrollTop();
+		int dw = dialog.getOffsetWidth();
+
+		// LogUtils.log(clientWidth+","+scrollTopPos+","+dw);
+
+		dialog.setPopupPosition(clientWidth - dw, scrollTopPos + 0);
+
 	}
 
 	protected HTML createAbsoluteHTML(String html, int x, int y) {
-		HTML htmlWidget=new HTML(html);
+		HTML htmlWidget = new HTML(html);
 		htmlWidget.getElement().getStyle().setPosition(Position.ABSOLUTE);
 		htmlWidget.getElement().getStyle().setLeft(x, Unit.PX);
 		htmlWidget.getElement().getStyle().setTop(y, Unit.PX);
 		return htmlWidget;
 	}
+
 	@Override
 	public int compareTo(Animation o) {
 		// TODO Auto-generated method stub
