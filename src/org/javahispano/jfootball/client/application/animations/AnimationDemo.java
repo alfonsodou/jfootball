@@ -3,30 +3,44 @@
  */
 package org.javahispano.jfootball.client.application.animations;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.akjava.bvh.client.BVH;
+import com.akjava.bvh.client.BVHNode;
+import com.akjava.bvh.client.BVHParser;
+import com.akjava.bvh.client.BVHParser.ParserListener;
+import com.akjava.bvh.client.Vec3;
 import com.akjava.gwt.bvh.client.BoxData;
+import com.akjava.gwt.html5.client.InputRangeWidget;
 import com.akjava.gwt.lib.client.IStorageControler;
 import com.akjava.gwt.lib.client.LogUtils;
 import com.akjava.gwt.lib.client.StorageControler;
 import com.akjava.gwt.stats.client.Stats;
 import com.akjava.gwt.three.client.gwt.GWTParamUtils;
+import com.akjava.gwt.three.client.gwt.materials.LineBasicMaterialParameter;
+import com.akjava.gwt.three.client.gwt.materials.MeshBasicMaterialParameter;
+import com.akjava.gwt.three.client.gwt.materials.MeshLambertMaterialParameter;
+import com.akjava.gwt.three.client.java.JClock;
 import com.akjava.gwt.three.client.java.utils.GWTThreeUtils;
 import com.akjava.gwt.three.client.js.THREE;
 import com.akjava.gwt.three.client.js.cameras.PerspectiveCamera;
-import com.akjava.gwt.three.client.js.core.Clock;
+import com.akjava.gwt.three.client.js.core.Geometry;
 import com.akjava.gwt.three.client.js.core.Object3D;
 import com.akjava.gwt.three.client.js.extras.geometries.BoxGeometry;
 import com.akjava.gwt.three.client.js.extras.geometries.SphereGeometry;
 import com.akjava.gwt.three.client.js.lights.DirectionalLight;
 import com.akjava.gwt.three.client.js.materials.MeshPhongMaterial;
 import com.akjava.gwt.three.client.js.math.Vector3;
+import com.akjava.gwt.three.client.js.objects.Line;
 import com.akjava.gwt.three.client.js.objects.Mesh;
 import com.akjava.gwt.three.client.js.renderers.WebGLRenderer;
 import com.akjava.gwt.three.client.js.scenes.Scene;
 import com.akjava.gwt.three.client.js.textures.Texture;
 import com.akjava.lib.common.utils.Benchmark;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
@@ -67,7 +81,7 @@ public class AnimationDemo extends AbstractAnimation {
 	double SCREEN_WIDTH;
 	double SCREEN_HEIGHT;
 
-	Clock clock;
+	JClock clock = new JClock();
 	private DirectionalLight light;
 	private Object3D object;
 
@@ -76,6 +90,14 @@ public class AnimationDemo extends AbstractAnimation {
 	private Object3D rootGroup, boneContainer, backgroundContainer;
 	private Map<String, BoxData> boxDatas;
 	private IStorageControler storageControler;
+	private Map<String, Object3D> jointMap;
+	Object3D boneRoot;
+	private BVH bvh;
+	private InputRangeWidget currentFrameRange;
+	private List<Object3D> bodyMeshs = new ArrayList<Object3D>();
+	double baseBoneSize = 0.4;
+	String tmp = "";
+
 
 	@Override
 	public void init() {
@@ -362,7 +384,157 @@ public class AnimationDemo extends AbstractAnimation {
 		}
 	}
 
-	
+	private void parseBVH(String bvhText) {
+		final BVHParser parser = new BVHParser();
+		jointMap = new HashMap<String, Object3D>();
+
+		parser.parseAsync(bvhText, new ParserListener() {
+
+			@Override
+			public void onSuccess(BVH bv) {
+				setBVH(bv);
+			}
+
+			@Override
+			public void onFaild(String message) {
+				LogUtils.log(message);
+			}
+		});
+	}
+
+	private void setBVH(BVH bv) {
+		bvh = bv;
+		bvh.setSkips(skipFrames);
+
+		BVHNode node = bvh.getHiearchy();
+
+		if (boneRoot != null) {
+			boneContainer.remove(boneRoot);
+		}
+		boneRoot = THREE.Object3D();
+		boneContainer.add(boneRoot);
+
+		// possible bone root is not 0
+		boneRoot.setPosition(node.getOffset().getX(), node.getOffset().getY(), node.getOffset().getZ());
+
+		doJoint(boneRoot, null, node);
+		// GWT.log(tmp);
+		int poseIndex = 0;
+		GWT.log("f-size:" + bvh.getFrames());
+
+		clock.update();
+		updatePoseIndex(poseIndex);
+		doPose(bvh, bvh.getFrameAt(poseIndex));
+		currentFrameRange.setMax(bvh.getFrames() - 1);
+	}
+
+	public void doJoint(Object3D parent, BVHNode pNode, BVHNode node) {
+
+		if (pNode != null) {
+			LogUtils.log(pNode.getName() + "," + node.getName());
+		} else {
+			LogUtils.log(null + "," + node.getName());
+		}
+
+		GWT.log(node.getName() + "," + node.getOffset() + ",endsite:" + node.getEndSite());
+		GWT.log(node.getChannels().toString());
+
+		Object3D group = THREE.Object3D();
+		Mesh mesh = THREE.Mesh(THREE.CubeGeometry(baseBoneSize, baseBoneSize, baseBoneSize),
+				THREE.MeshLambertMaterial(MeshLambertMaterialParameter.create().color(0x00ff00)));
+		group.add(mesh);
+		mesh.setName(node.getName());
+		group.setName(node.getName());
+		// initial position
+		group.setPosition(THREE.Vector3(node.getOffset().getX(), node.getOffset().getY(), node.getOffset().getZ()));
+		jointMap.put(node.getName(), group);
+
+		// create half
+		Vector3 half = group.getPosition().clone();
+		if (half.getX() != 0 || half.getY() != 0 || half.getY() != 0) {
+			half.divideScalar(2);
+			// Mesh hmesh=THREE.Mesh(THREE.CubeGeometry(.2,.2,.2),
+			// THREE.MeshLambertMaterial().color(0xffffff).build());
+			Mesh halfMesh = THREE.Mesh(THREE.CylinderGeometry(baseBoneSize / 4, baseBoneSize / 4, baseBoneSize / 2, 6),
+					THREE.MeshLambertMaterial(MeshLambertMaterialParameter.create().color(0xffffff)));
+
+			halfMesh.setPosition(half);
+
+			if (pNode != null) {
+				parent.add(halfMesh);
+				bodyMeshs.add(halfMesh);
+
+			}
+
+			if (pNode != null) {
+				tmp += pNode.getName() + ",1,1,1\n";
+
+				// this is supported-bone structor.
+				BoxData data = boxDatas.get(pNode.getName());//
+				if (data != null) {
+					halfMesh.setScale(data.getScaleX(), data.getScaleY(), data.getScaleZ());
+					halfMesh.getRotation().setZ(Math.toRadians(data.getRotateZ()));
+				}
+			}
+
+		}
+
+		// line
+		Line lineMesh = createLine(new Vec3(), node.getOffset());
+
+		if (pNode != null) {
+			parent.add(lineMesh);
+		}
+
+		if (node.getEndSite() != null) {
+			Mesh end = THREE.Mesh(THREE.CubeGeometry(baseBoneSize / 4, baseBoneSize / 4, baseBoneSize / 4),
+					THREE.MeshBasicMaterial(MeshBasicMaterialParameter.create().color(0x008800)));
+			end.setPosition(
+					THREE.Vector3(node.getEndSite().getX(), node.getEndSite().getY(), node.getEndSite().getZ()));
+			group.add(end);
+			Geometry lineG = THREE.Geometry();
+			lineG.vertices().push(THREE.Vector3(0, 0, 0));
+			lineG.vertices()
+					.push(THREE.Vector3(node.getEndSite().getX(), node.getEndSite().getY(), node.getEndSite().getZ()));
+			Line line = THREE.Line(lineG, THREE.LineBasicMaterial(LineBasicMaterialParameter.create().color(0)));
+			group.add(line);
+
+			Vector3 half2 = end.getPosition().clone();
+			if (half2.getX() != 0 || half2.getY() != 0 || half2.getY() != 0) {
+				half2.divideScalar(2);
+				// Mesh hmesh=THREE.Mesh(THREE.CubeGeometry(.1,.1,.1),
+				// THREE.MeshLambertMaterial().color(0xffffff).build());
+				Mesh hmesh = THREE.Mesh(THREE.CylinderGeometry(baseBoneSize / 4, baseBoneSize / 4, baseBoneSize / 2, 6),
+						THREE.MeshLambertMaterial(MeshLambertMaterialParameter.create().color(0xffffff)));
+
+				hmesh.setPosition(half2);
+				group.add(hmesh);
+
+				tmp += node.getName() + ",1,1,1\n";
+
+				// this is special treatment for bone.
+				BoxData data = boxDatas.get(node.getName());
+				if (data != null) {
+					hmesh.setScale(data.getScaleX(), data.getScaleY(), data.getScaleZ());
+				}
+				if (node.getName().equals("Head")) {// why need this?
+					// hmesh.getPosition().setZ(hmesh.getPosition().getZ()+0.5);
+				}
+
+				bodyMeshs.add(hmesh);
+
+			}
+		}
+		parent.add(group);
+		List<BVHNode> joints = node.getJoints();
+		if (joints != null) {
+			for (BVHNode joint : joints) {
+				doJoint(group, node, joint);
+			}
+		}
+
+	}
+
 	public void onWindowResize() {
 		SCREEN_WIDTH = getWindowInnerWidth();
 		SCREEN_HEIGHT = getWindowInnerHeight();
