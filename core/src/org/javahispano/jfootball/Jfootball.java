@@ -48,16 +48,17 @@ public class Jfootball extends ApplicationAdapter {
 		cam.update();
 
 		assets = new AssetManager();
-		assets.load("terrain football4.g3db", Model.class);
+		assets.load("terrain football4.g3dj", Model.class);
 		assets.finishLoading();
-		model = assets.get("terrain football4.g3db", Model.class);
-		for (float x = -30; x <= 10f; x += 20) {
-			for (float z = -30f; z <= 0f; z += 10f) {
+		model = assets.get("terrain football4.g3dj", Model.class);
+		//for (float x = -30; x <= 10f; x += 20) {
+			//for (float z = -30f; z <= 0f; z += 10f) {
 				ModelInstance instance = new ModelInstance(model);
-				instance.transform.setToTranslation(x, 0, z);
+				//instance.transform.setToTranslation(x, 0, z);
+				instance.transform.setToTranslation(0, 0, 0);
 				instances.add(instance);
-			}
-		}
+			//}
+		//}
 
 		camController = new CameraInputController(cam);
 		Gdx.input.setInputProcessor(camController);
