@@ -2,6 +2,7 @@ package org.javahispano.jfootball;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
@@ -32,6 +33,9 @@ public class Jfootball extends ApplicationAdapter {
 	public BitmapFont font;
 	public StringBuilder stringBuilder = new StringBuilder();
 	private Vector3 position = new Vector3();
+	private Vector3 position_translation = new Vector3();
+	private float scale = 1;
+	private float rotation;
 
 	@Override
 	public void create() {
@@ -41,24 +45,24 @@ public class Jfootball extends ApplicationAdapter {
 		modelBatch = new ModelBatch();
 
 		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(5, 20, 20);
+		cam.position.set(10f, 10f, 10f);
 		cam.lookAt(0, 0, 0);
 		cam.near = 1f;
-		cam.far = 100f;
+		cam.far = 300f;
 		cam.update();
 
 		assets = new AssetManager();
-		assets.load("terrain football4.g3dj", Model.class);
+		assets.load("ball.g3db", Model.class);
 		assets.finishLoading();
-		model = assets.get("terrain football4.g3dj", Model.class);
-		//for (float x = -30; x <= 10f; x += 20) {
-			//for (float z = -30f; z <= 0f; z += 10f) {
-				ModelInstance instance = new ModelInstance(model);
-				//instance.transform.setToTranslation(x, 0, z);
-				instance.transform.setToTranslation(0, 0, 0);
-				instances.add(instance);
-			//}
-		//}
+		model = assets.get("ball.g3db", Model.class);
+		// for (float x = -30; x <= 10f; x += 20) {
+		// for (float z = -30f; z <= 0f; z += 10f) {
+		ModelInstance instance = new ModelInstance(model);
+		// instance.transform.setToTranslation(x, 0, z);
+		instance.transform.setToTranslation(0, 0, 0);
+		instances.add(instance);
+		// }
+		// }
 
 		camController = new CameraInputController(cam);
 		Gdx.input.setInputProcessor(camController);
@@ -79,6 +83,9 @@ public class Jfootball extends ApplicationAdapter {
 		modelBatch.begin(cam);
 		int count = 0;
 		for (ModelInstance instance : instances) {
+			rotate(instance);
+			movement(instance);
+			updateTransformation(instance);
 			if (isVisible(cam, instance)) {
 				modelBatch.render(instance, environment);
 				count++;
@@ -108,4 +115,30 @@ public class Jfootball extends ApplicationAdapter {
 		return cam.frustum.pointInFrustum(position);
 	}
 
+	private void movement(ModelInstance instance) {
+		instance.transform.getTranslation(position_translation);
+		if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+			position_translation.x += Gdx.graphics.getDeltaTime();
+		}
+		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+			position_translation.z += Gdx.graphics.getDeltaTime();
+		}
+		if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+			position_translation.z -= Gdx.graphics.getDeltaTime();
+		}
+		if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+			position_translation.x -= Gdx.graphics.getDeltaTime();
+		}
+		instance.transform.setTranslation(position_translation);
+	}
+
+	private void rotate(ModelInstance instance) {
+		rotation = (rotation + Gdx.graphics.getDeltaTime() * 100) % 360;
+		instance.transform.setFromEulerAngles(0, 0, rotation).trn(position.x, position.y, position.z);
+	}
+
+	private void updateTransformation(ModelInstance instance) {
+		instance.transform.setFromEulerAngles(0, 0, rotation).trn(position.x, position.y, position.z).scale(scale,
+				scale, scale);
+	}
 }
