@@ -30,8 +30,7 @@ public class GameScreen implements Screen {
 	public void dispose() {
 		gameWorld.dispose();
 	}
-	// empty methods from Screen
-
+	
 	@Override
 	public void show() {
 		// TODO Auto-generated method stub
