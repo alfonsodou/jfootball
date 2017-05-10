@@ -3,10 +3,9 @@
  */
 package org.javahispano.jfootball;
 
-import org.javahispano.jfootball.Components.ModelComponent;
+import org.javahispano.jfootball.managers.EntityFactory;
 
 import com.badlogic.ashley.core.Engine;
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -27,24 +26,29 @@ public class GameWorld {
 	private ModelBatch modelBatch;
 	private Environment environment;
 	private PerspectiveCamera perspectiveCamera;
-	private Engine engine;
+	private Engine engine = new Engine();
+
+	public ModelBuilder modelBuilder = new ModelBuilder();
+
+	Model groundModel = modelBuilder.createBox(40, 1, 40,
+			new Material(ColorAttribute.createDiffuse(Color.YELLOW), ColorAttribute.createSpecular(Color.BLUE),
+					FloatAttribute.createShininess(16f)),
+			VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
 	public GameWorld() {
-		engine = new Engine();
-
-		ModelBuilder modelBuilder = new ModelBuilder();
-		Material boxMaterial = new Material(ColorAttribute.createDiffuse(Color.WHITE),
-				ColorAttribute.createSpecular(Color.RED), FloatAttribute.createShininess(16f));
-		Model box = modelBuilder.createBox(5, 5, 5, boxMaterial,
-				VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
-		Entity entity = new Entity();
-		entity.add(new ModelComponent(box, 10, 10, 10));
-		engine.addEntity(entity);
-
-		initPersCamera();
 		initEnvironment();
 		initModelBatch();
+		initPersCamera();
+
+		addEntities();
+	}
+
+	private void addEntities() {
+		createGround();
+	}
+
+	private void createGround() {
+		engine.addEntity(EntityFactory.createStaticEntity(groundModel, 0, 0, 0));
 	}
 
 	private void initPersCamera() {
@@ -70,6 +74,7 @@ public class GameWorld {
 	 * add it to the disposefunction.
 	 */
 	public void dispose() {
+		groundModel.dispose();
 		modelBatch.dispose();
 	}
 
@@ -81,7 +86,12 @@ public class GameWorld {
 
 	// and set up the render function with the modelbatch
 	public void render(float delta) {
+		renderWorld(delta);
+	}
+	
+	protected void renderWorld(float delta) {
 		modelBatch.begin(perspectiveCamera);
+		engine.update(delta);
 		modelBatch.end();
 	}
 }

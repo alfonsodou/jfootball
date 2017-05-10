@@ -1,10 +1,9 @@
 /**
  * 
  */
-package org.javahispano.jfootball.Components;
+package org.javahispano.jfootball.components;
 
-import java.awt.Component;
-
+import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
@@ -13,11 +12,7 @@ import com.badlogic.gdx.math.Matrix4;
  * @author adou
  *
  */
-public class ModelComponent extends Component {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8973282301269419317L;
+public class ModelComponent implements Component {
 	
 	public Model model;
 	public ModelInstance instance;
