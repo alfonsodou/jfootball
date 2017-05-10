@@ -13,7 +13,7 @@ public class GameScreen implements Screen {
 	public GameScreen(Core game) {
 		this.game = game;
 		gameWorld = new GameWorld();
-		Gdx.input.setCursorCatched(true);
+		//Gdx.input.setCursorCatched(true);
 	}
 
 	@Override

@@ -4,6 +4,7 @@
 package org.javahispano.jfootball;
 
 import org.javahispano.jfootball.managers.EntityFactory;
+import org.javahispano.jfootball.systems.RenderSystem;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.graphics.Color;
@@ -26,7 +27,7 @@ public class GameWorld {
 	private ModelBatch modelBatch;
 	private Environment environment;
 	private PerspectiveCamera perspectiveCamera;
-	private Engine engine = new Engine();
+	private Engine engine;
 
 	public ModelBuilder modelBuilder = new ModelBuilder();
 
@@ -40,9 +41,14 @@ public class GameWorld {
 		initModelBatch();
 		initPersCamera();
 
+		addSystems();
 		addEntities();
 	}
 
+	private void addSystems() {
+		engine = new Engine();
+		engine.addSystem(new RenderSystem(modelBatch, environment));
+	}
 	private void addEntities() {
 		createGround();
 	}
@@ -53,11 +59,11 @@ public class GameWorld {
 
 	private void initPersCamera() {
 		perspectiveCamera = new PerspectiveCamera(FOV, Core.VIRTUAL_WIDTH, Core.VIRTUAL_HEIGHT);
-		perspectiveCamera.position.set(30f, 40f, 30f);
-		perspectiveCamera.lookAt(0f, 0f, 0f);
-		perspectiveCamera.near = 1f;
-		perspectiveCamera.far = 300f;
-		perspectiveCamera.update();
+		//perspectiveCamera.position.set(30f, 40f, 30f);
+		//perspectiveCamera.lookAt(0f, 0f, 0f);
+		//perspectiveCamera.near = 1f;
+		//perspectiveCamera.far = 300f;
+		//perspectiveCamera.update();
 	}
 
 	private void initEnvironment() {
