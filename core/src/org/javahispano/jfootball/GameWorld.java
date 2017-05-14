@@ -59,11 +59,11 @@ public class GameWorld {
 
 	private void initPersCamera() {
 		perspectiveCamera = new PerspectiveCamera(FOV, Core.VIRTUAL_WIDTH, Core.VIRTUAL_HEIGHT);
-		//perspectiveCamera.position.set(30f, 40f, 30f);
-		//perspectiveCamera.lookAt(0f, 0f, 0f);
-		//perspectiveCamera.near = 1f;
-		//perspectiveCamera.far = 300f;
-		//perspectiveCamera.update();
+		perspectiveCamera.position.set(30f, 40f, 30f);
+		perspectiveCamera.lookAt(0f, 0f, 0f);
+		perspectiveCamera.near = 1f;
+		perspectiveCamera.far = 300f;
+		perspectiveCamera.update();
 	}
 
 	private void initEnvironment() {
