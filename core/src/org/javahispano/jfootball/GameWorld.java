@@ -4,100 +4,103 @@
 package org.javahispano.jfootball;
 
 import org.javahispano.jfootball.managers.EntityFactory;
+import org.javahispano.jfootball.systems.PlayerSystem;
 import org.javahispano.jfootball.systems.RenderSystem;
 
 import com.badlogic.ashley.core.Engine;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.ashley.core.Entity;
+import com.sun.scenario.Settings;
 
 /**
  * @author adou
  *
  */
 public class GameWorld {
-	private static final float FOV = 67F;
-	private ModelBatch modelBatch;
-	private Environment environment;
-	private PerspectiveCamera perspectiveCamera;
-	private Engine engine;
+    private static final boolean debug = false;
+    private Engine engine;
+    private Entity character, gun, dome;
+    public PlayerSystem playerSystem;
+    private RenderSystem renderSystem;
 
-	public ModelBuilder modelBuilder = new ModelBuilder();
+    public GameWorld() {
+        addSystems();
+        addEntities();
+    }
 
-	Model groundModel = modelBuilder.createBox(40, 1, 40,
-			new Material(ColorAttribute.createDiffuse(Color.YELLOW), ColorAttribute.createSpecular(Color.BLUE),
-					FloatAttribute.createShininess(16f)),
-			VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+    private void addSystems() {
+        engine = new Engine();
+        engine.addSystem(renderSystem = new RenderSystem());
+        EntityFactory.renderSystem = renderSystem;
+        engine.addSystem(playerSystem = new PlayerSystem(this, renderSystem.perspectiveCamera));
+    }
 
-	public GameWorld() {
-		initEnvironment();
-		initModelBatch();
-		initPersCamera();
+    private void addEntities() {
+        loadLevel();
+        createPlayer(0, 6, 0);
+    }
 
-		addSystems();
-		addEntities();
-	}
+    private void loadLevel() {
+        engine.addEntity(EntityFactory.loadScene(0, 0, 0));
+        engine.addEntity(dome = EntityFactory.loadDome(0, 0, 0));
+        playerSystem.dome = dome;
+    }
 
-	private void addSystems() {
-		engine = new Engine();
-		engine.addSystem(new RenderSystem(modelBatch, environment));
-	}
-	private void addEntities() {
-		createGround();
-	}
+    private void createPlayer(float x, float y, float z) {
+        character = EntityFactory.createPlayer(bulletSystem, x, y, z);
+        engine.addEntity(character);
+        engine.addEntity(gun = EntityFactory.loadGun(2.5f, -1.9f, -4));
+        playerSystem.gun = gun;
+        renderSystem.gun = gun;
+    }
 
-	private void createGround() {
-		engine.addEntity(EntityFactory.createStaticEntity(groundModel, 0, 0, 0));
-	}
+    public void render(float delta) {
+        renderWorld(delta);
+        checkPause();
+    }
 
-	private void initPersCamera() {
-		perspectiveCamera = new PerspectiveCamera(FOV, Core.VIRTUAL_WIDTH, Core.VIRTUAL_HEIGHT);
-		perspectiveCamera.position.set(30f, 40f, 30f);
-		perspectiveCamera.lookAt(0f, 0f, 0f);
-		perspectiveCamera.near = 1f;
-		perspectiveCamera.far = 300f;
-		perspectiveCamera.update();
-	}
+    private void checkPause() {
+        if (Settings.Paused) {
+            engine.getSystem(PlayerSystem.class).setProcessing(false);
+            engine.getSystem(EnemySystem.class).setProcessing(false);
+            engine.getSystem(StatusSystem.class).setProcessing(false);
+            engine.getSystem(BulletSystem.class).setProcessing(false);
+        } else {
+            engine.getSystem(PlayerSystem.class).setProcessing(true);
+            engine.getSystem(EnemySystem.class).setProcessing(true);
+            engine.getSystem(StatusSystem.class).setProcessing(true);
+            engine.getSystem(BulletSystem.class).setProcessing(true);
+        }
+    }
 
-	private void initEnvironment() {
-		environment = new Environment();
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.3f, 0.3f, 0.3f, 1f));
-	}
+    protected void renderWorld(float delta) {
+        engine.update(delta);
+        if (debug) {
+            debugDrawer.begin(renderSystem.perspectiveCamera);
+            bulletSystem.collisionWorld.debugDrawWorld();
+            debugDrawer.end();
+        }
+    }
 
-	private void initModelBatch() {
-		modelBatch = new ModelBatch();
-	}
+    public void resize(int width, int height) {
+        renderSystem.resize(width, height);
+    }
 
-	/*
-	 * The ModelBatch is one of the objects, which require disposing, hence we
-	 * add it to the disposefunction.
-	 */
-	public void dispose() {
-		groundModel.dispose();
-		modelBatch.dispose();
-	}
+    public void dispose() {
+        bulletSystem.collisionWorld.removeAction(character.getComponent(CharacterComponent.class).characterController);
+        bulletSystem.collisionWorld.removeCollisionObject(character.getComponent(CharacterComponent.class).ghostObject);
+        bulletSystem.dispose();
 
-	/* With the camera set we can now fill in the resize function as well */
-	public void resize(int width, int height) {
-		perspectiveCamera.viewportHeight = height;
-		perspectiveCamera.viewportWidth = width;
-	}
+        bulletSystem = null;
+        renderSystem.dispose();
 
-	// and set up the render function with the modelbatch
-	public void render(float delta) {
-		renderWorld(delta);
-	}
-	
-	protected void renderWorld(float delta) {
-		modelBatch.begin(perspectiveCamera);
-		engine.update(delta);
-		modelBatch.end();
-	}
+        character.getComponent(CharacterComponent.class).characterController.dispose();
+        character.getComponent(CharacterComponent.class).ghostObject.dispose();
+        character.getComponent(CharacterComponent.class).ghostShape.dispose();
+//        EntityFactory.dispose();
+    }
+
+    public void remove(Entity entity) {
+        engine.removeEntity(entity);
+        bulletSystem.removeBody(entity);
+    }
 }
