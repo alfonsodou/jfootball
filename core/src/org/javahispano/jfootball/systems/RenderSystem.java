@@ -4,6 +4,7 @@
 package org.javahispano.jfootball.systems;
 
 import org.javahispano.jfootball.Core;
+import org.javahispano.jfootball.Settings;
 import org.javahispano.jfootball.components.AnimationComponent;
 import org.javahispano.jfootball.components.ModelComponent;
 import org.javahispano.jfootball.components.PlayerComponent;
@@ -21,7 +22,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.math.Vector3;
-import com.sun.scenario.Settings;
+
 
 /**
  * @author alfonso
