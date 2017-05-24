@@ -14,6 +14,8 @@ public class Core extends ApplicationAdapter {
 
 	@Override
 	public void create() {
+		new Assets();
+        new Settings().load();
 		setScreen(new GameScreen(this));
 	}
 
@@ -40,4 +42,10 @@ public class Core extends ApplicationAdapter {
 			this.screen.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		}
 	}
+	
+	@Override
+    public void dispose() {
+        Settings.save();
+        Assets.dispose();
+    }
 }

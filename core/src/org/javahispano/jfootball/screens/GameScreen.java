@@ -2,6 +2,7 @@ package org.javahispano.jfootball.screens;
 
 import org.javahispano.jfootball.Core;
 import org.javahispano.jfootball.GameWorld;
+import org.javahispano.jfootball.Settings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -13,6 +14,7 @@ public class GameScreen implements Screen {
 	public GameScreen(Core game) {
 		this.game = game;
 		gameWorld = new GameWorld();
+		Settings.Paused = false;
 		//Gdx.input.setCursorCatched(true);
 	}
 

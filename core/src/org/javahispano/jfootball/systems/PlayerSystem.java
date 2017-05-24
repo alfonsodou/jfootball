@@ -35,7 +35,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputP
 	private float deltaY;
 	private Vector3 translation = new Vector3();
 	private Matrix4 ghost = new Matrix4();
-
+	public Entity dome;
+	
 	public PlayerSystem(GameWorld gameWorld, Camera camera) {
 		this.camera = camera;
 		this.gameWorld = gameWorld;

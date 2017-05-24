@@ -3,8 +3,7 @@
  */
 package org.javahispano.jfootball.components;
 
-import java.awt.Component;
-
+import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 
@@ -12,7 +11,7 @@ import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
  * @author alfonso
  *
  */
-public class AnimationComponent extends Component {
+public class AnimationComponent implements Component {
 	private AnimationController animationController;
 
 	public AnimationComponent(ModelInstance instance) {
