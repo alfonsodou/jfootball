@@ -3,7 +3,6 @@
  */
 package org.javahispano.jfootball;
 
-import org.javahispano.jfootball.components.PlayerComponent;
 import org.javahispano.jfootball.managers.EntityFactory;
 import org.javahispano.jfootball.systems.PlayerSystem;
 import org.javahispano.jfootball.systems.RenderSystem;
@@ -16,7 +15,6 @@ import com.badlogic.ashley.core.Entity;
  *
  */
 public class GameWorld {
-    private static final boolean debug = false;
     private Engine engine;
     private Entity character, dome;
     public PlayerSystem playerSystem;
