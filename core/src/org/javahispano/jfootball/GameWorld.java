@@ -3,6 +3,7 @@
  */
 package org.javahispano.jfootball;
 
+import org.javahispano.jfootball.UI.GameUI;
 import org.javahispano.jfootball.managers.EntityFactory;
 import org.javahispano.jfootball.systems.PlayerSystem;
 import org.javahispano.jfootball.systems.RenderSystem;
@@ -20,16 +21,16 @@ public class GameWorld {
     public PlayerSystem playerSystem;
     private RenderSystem renderSystem;
 
-    public GameWorld() {
-        addSystems();
+    public GameWorld(GameUI gameUI) {
+        addSystems(gameUI);
         addEntities();
     }
 
-    private void addSystems() {
+    private void addSystems(GameUI gameUI) {
         engine = new Engine();
         engine.addSystem(renderSystem = new RenderSystem());
         EntityFactory.renderSystem = renderSystem;
-        engine.addSystem(playerSystem = new PlayerSystem(this, renderSystem.perspectiveCamera));
+        engine.addSystem(playerSystem = new PlayerSystem(this, gameUI, renderSystem.perspectiveCamera));
     }
 
     private void addEntities() {

@@ -4,6 +4,7 @@
 package org.javahispano.jfootball.systems;
 
 import org.javahispano.jfootball.GameWorld;
+import org.javahispano.jfootball.UI.GameUI;
 import org.javahispano.jfootball.components.ModelComponent;
 import org.javahispano.jfootball.components.PlayerComponent;
 
@@ -12,7 +13,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -36,10 +36,12 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputP
 	private Vector3 translation = new Vector3();
 	private Matrix4 ghost = new Matrix4();
 	public Entity dome;
-	
-	public PlayerSystem(GameWorld gameWorld, Camera camera) {
+	private GameUI gameUI;
+
+	public PlayerSystem(GameWorld gameWorld, GameUI gameUI, Camera camera) {
 		this.camera = camera;
 		this.gameWorld = gameWorld;
+		this.gameUI = gameUI;
 	}
 
 	@Override
@@ -84,6 +86,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputP
 				camera.direction.y, camera.direction.z, 0);
 		camera.position.set(translation.x, translation.y, translation.z);
 		camera.update(true);
+
+		dome.getComponent(ModelComponent.class).instance.transform.setToTranslation(translation.x, translation.y,
+				translation.z);
 	}
 
 	@Override

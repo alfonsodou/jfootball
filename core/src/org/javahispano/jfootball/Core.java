@@ -1,6 +1,6 @@
 package org.javahispano.jfootball;
 
-import org.javahispano.jfootball.screens.GameScreen;
+import org.javahispano.jfootball.screens.MainMenuScreen;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -16,7 +16,7 @@ public class Core extends ApplicationAdapter {
 	public void create() {
 		new Assets();
         new Settings().load();
-		setScreen(new GameScreen(this));
+		setScreen(new MainMenuScreen(this));
 	}
 
 	@Override
