@@ -20,7 +20,7 @@ public class GameScreen implements Screen {
 		Settings.Paused = false;
 		Settings.Paused = false;
 		Gdx.input.setInputProcessor(gameUI.stage);
-		// Gdx.input.setCursorCatched(true);
+		Gdx.input.setCursorCatched(true);
 	}
 
 	@Override
