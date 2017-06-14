@@ -11,14 +11,17 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.loaders.ModelLoader;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.TextureProvider;
@@ -30,10 +33,12 @@ import com.badlogic.gdx.utils.UBJsonReader;
  *
  */
 public class EntityFactory {
-    private static Model playerModel;
+    private static Model playerModel, enemyModel;
     private static Texture playerTexture;
     private static ModelBuilder modelBuilder;
     public static RenderSystem renderSystem;
+    private static ModelData enemyModelData;
+    private static ModelComponent enemyModelComponent;
 
     static {
         modelBuilder = new ModelBuilder();
@@ -55,6 +60,25 @@ public class EntityFactory {
         Entity entity = createCharacter(x, y, z);
         entity.add(new PlayerComponent());
         return entity;
+    }
+    
+    public static Entity createEnemy(float x, float y, float z) {
+    	Entity entity = new Entity();
+    	ModelLoader<?> modelLoader = new G3dModelLoader(new JsonReader());
+    	if (enemyModel == null) {
+            enemyModelData = modelLoader.loadModelData(Gdx.files.internal("fellguard.g3dj"));
+            enemyModel = new Model(enemyModelData, new TextureProvider.FileTextureProvider());
+            for (Node node : enemyModel.nodes) node.scale.scl(0.0025f);
+            enemyModel.calculateTransforms();
+            enemyModelComponent = new ModelComponent(enemyModel, x, y, z);
+
+            Material material = enemyModelComponent.instance.materials.get(0);
+            BlendingAttribute blendingAttribute;
+            material.set(blendingAttribute = new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
+            enemyModelComponent.blendingAttribute = blendingAttribute;
+    	}
+
+    	return entity;
     }
 
     public static Entity loadDome(int x, int y, int z) {
