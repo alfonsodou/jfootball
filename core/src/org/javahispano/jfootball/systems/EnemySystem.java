@@ -6,6 +6,7 @@ package org.javahispano.jfootball.systems;
 import java.util.Random;
 
 import org.javahispano.jfootball.GameWorld;
+import org.javahispano.jfootball.components.CharacterComponent;
 import org.javahispano.jfootball.components.EnemyComponent;
 import org.javahispano.jfootball.components.ModelComponent;
 import org.javahispano.jfootball.components.PlayerComponent;
@@ -41,7 +42,7 @@ public class EnemySystem extends EntitySystem implements EntityListener {
 	private float[] xSpawns = { 12, -12, 112, -112 };
 	private float[] zSpawns = { -112, 112, -12, 12 };
 
-	ComponentMapper<PlayerComponent> cm = ComponentMapper.getFor(PlayerComponent.class);
+	ComponentMapper<CharacterComponent> cm = ComponentMapper.getFor(CharacterComponent.class);
 
 	public EnemySystem(GameWorld gameWorld) {
 		this.gameWorld = gameWorld;
@@ -49,7 +50,7 @@ public class EnemySystem extends EntitySystem implements EntityListener {
 
 	@Override
 	public void addedToEngine(Engine e) {
-		entities = e.getEntitiesFor(Family.one(EnemyComponent.class).get());
+		entities = e.getEntitiesFor(Family.all(EnemyComponent.class, CharacterComponent.class).get());
 		e.addEntityListener(Family.one(PlayerComponent.class).get(), this);
 		this.engine = e;
 	}
@@ -73,6 +74,11 @@ public class EnemySystem extends EntitySystem implements EntityListener {
 
 			// Calculate the transforms
 			Quaternion rot = quat.setFromAxis(0, 1, 0, (float) Math.toDegrees(theta) + 90);
+			
+			cm.get(e).characterDirection.set(-1, 0, 0).rot(mod.instance.transform);
+            cm.get(e).walkDirection.set(0, 0, 0);
+            cm.get(e).walkDirection.add(cm.get(e).characterDirection);
+            cm.get(e).walkDirection.scl(10f * delta);
 
 			mod.instance.transform.set(translation.x, translation.y, translation.z, rot.x, rot.y, rot.z, rot.w);
 		}

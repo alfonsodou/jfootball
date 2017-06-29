@@ -5,6 +5,7 @@ package org.javahispano.jfootball.systems;
 
 import org.javahispano.jfootball.GameWorld;
 import org.javahispano.jfootball.UI.GameUI;
+import org.javahispano.jfootball.components.CharacterComponent;
 import org.javahispano.jfootball.components.ModelComponent;
 import org.javahispano.jfootball.components.PlayerComponent;
 
@@ -27,6 +28,7 @@ import com.badlogic.gdx.math.Vector3;
 public class PlayerSystem extends EntitySystem implements EntityListener, InputProcessor {
 	private Entity player;
 	private PlayerComponent playerComponent;
+	private CharacterComponent characterComponent;
 	private ModelComponent modelComponent;
 	private final Vector3 tmp = new Vector3();
 	private final Camera camera;
@@ -67,20 +69,20 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputP
 		camera.direction.rotate(tmp, deltaY);
 		tmp.set(0, 0, 0);
 		
-		playerComponent.characterDirection.set(-1, 0, 0).rot(modelComponent.instance.transform).nor();
-		playerComponent.walkDirection.set(0, 0, 0);
+		characterComponent.characterDirection.set(-1, 0, 0).rot(modelComponent.instance.transform).nor();
+		characterComponent.walkDirection.set(0, 0, 0);
 		
 		if (Gdx.input.isKeyPressed(Input.Keys.W))
-			playerComponent.walkDirection.add(camera.direction);
+			characterComponent.walkDirection.add(camera.direction);
 		if (Gdx.input.isKeyPressed(Input.Keys.S))
-			playerComponent.walkDirection.sub(camera.direction);
+			characterComponent.walkDirection.sub(camera.direction);
 		if (Gdx.input.isKeyPressed(Input.Keys.A))
 			tmp.set(camera.direction).crs(camera.up).scl(-1);
 		if (Gdx.input.isKeyPressed(Input.Keys.D))
 			tmp.set(camera.direction).crs(camera.up);
 
-		playerComponent.walkDirection.add(tmp);
-		playerComponent.walkDirection.scl(10f * delta);
+		characterComponent.walkDirection.add(tmp);
+		characterComponent.walkDirection.scl(10f * delta);
 		
 		translation.set(0, 0, 0);
 		translation = new Vector3();
@@ -98,6 +100,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputP
 	public void entityAdded(Entity entity) {
 		player = entity;
 		playerComponent = entity.getComponent(PlayerComponent.class);
+		characterComponent = entity.getComponent(CharacterComponent.class);
 		modelComponent = entity.getComponent(ModelComponent.class);
 		//
 	}
