@@ -52,6 +52,8 @@ public class Core extends ApplicationAdapter {
 		assets = new AssetManager();
 		assets.load("soccer.g3dj", Model.class);
 		assets.load("ybot_reducido_2.g3dj", Model.class);
+		assets.load("Soccer Penalty Kick_reducido.g3dj", Model.class);
+		assets.load("soccerball_1 fbx.g3dj", Model.class);
 		loading = true;
 	}
 
@@ -68,25 +70,38 @@ public class Core extends ApplicationAdapter {
 			mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
 		}
 		instances.add(soccerInstance);
+		
+		addObject("soccerball_1 fbx.g3dj", 0f, 0f, 0f);
 
-		addPlayer(9f, 0.1f, 0f);
-		addPlayer(6f, 0.1f, 2f);
-		addPlayer(6f, 0.1f, -2f);
-		addPlayer(5.5f, 0.1f, 0f);
-		addPlayer(4.5f, 0.1f, 4f);
-		addPlayer(4.5f, 0.1f, -4f);
-		addPlayer(3.5f, 0.1f, 5f);
-		addPlayer(3.5f, 0.1f, -5f);
-		addPlayer(2f, 0.1f, 3.5f);
-		addPlayer(2f, 0.1f, -3.5f);
-		addPlayer(0f, 0.1f, 0f);
+		addObject("ybot_reducido_2.g3dj", 9f, 0.1f, 0f);
+		addObject("ybot_reducido_2.g3dj", 6f, 0.1f, 2f);
+		addObject("ybot_reducido_2.g3dj", 6f, 0.1f, -2f);
+		addObject("ybot_reducido_2.g3dj", 5.5f, 0.1f, 0f);
+		addObject("ybot_reducido_2.g3dj", 4.5f, 0.1f, 4f);
+		addObject("ybot_reducido_2.g3dj", 4.5f, 0.1f, -4f);
+		addObject("ybot_reducido_2.g3dj", 3.5f, 0.1f, 5f);
+		addObject("ybot_reducido_2.g3dj", 3.5f, 0.1f, -5f);
+		addObject("ybot_reducido_2.g3dj", 2f, 0.1f, 3.5f);
+		addObject("ybot_reducido_2.g3dj", 2f, 0.1f, -3.5f);
+		addObject("ybot_reducido_2.g3dj", 0.5f, 0.1f, 0f);
 
+		addObject("Soccer Penalty Kick_reducido.g3dj", -9f, 0.1f, 0f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -6f, 0.1f, 2f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -6f, 0.1f, -2f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -5.5f, 0.1f, 0f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -4.5f, 0.1f, 4f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -4.5f, 0.1f, -4f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -3.5f, 0.1f, 5f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -3.5f, 0.1f, -5f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -2f, 0.1f, 3.5f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -2f, 0.1f, -3.5f);
+		addObject("Soccer Penalty Kick_reducido.g3dj", -0.5f, 0.1f, 0f);		
 		
 		loading = false;
 	}
 	
-	private void addPlayer(float x, float y, float z) {
-		Model player = assets.get("ybot_reducido_2.g3dj", Model.class);
+	private void addObject(String desc, float x, float y, float z) {
+		Model player = assets.get(desc, Model.class);
 		ModelInstance playerInstance = new ModelInstance(player);
 		for (Material mat : playerInstance.materials) {
 			mat.remove(IntAttribute.CullFace);
