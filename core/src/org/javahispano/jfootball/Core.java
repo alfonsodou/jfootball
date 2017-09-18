@@ -53,7 +53,7 @@ public class Core extends ApplicationAdapter {
 		assets.load("soccer.g3dj", Model.class);
 		assets.load("ybot_reducido_2.g3dj", Model.class);
 		assets.load("Soccer Penalty Kick_reducido.g3dj", Model.class);
-		assets.load("soccerball_1 fbx.g3dj", Model.class);
+		assets.load("soccerball_1_reducido.g3dj", Model.class);
 		loading = true;
 	}
 
@@ -71,7 +71,7 @@ public class Core extends ApplicationAdapter {
 		}
 		instances.add(soccerInstance);
 		
-		addObject("soccerball_1 fbx.g3dj", 0f, 0f, 0f);
+		addObject("soccerball_1_reducido.g3dj", 0.5f, 0.13f, 0f);
 
 		addObject("ybot_reducido_2.g3dj", 9f, 0.1f, 0f);
 		addObject("ybot_reducido_2.g3dj", 6f, 0.1f, 2f);
