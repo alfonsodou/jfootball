@@ -4,6 +4,11 @@
 package org.javahispano.jfootball;
 
 import org.javahispano.jfootball.loader.MyAssetManager;
+import org.javahispano.jfootball.views.EndScreen;
+import org.javahispano.jfootball.views.LoadingScreen;
+import org.javahispano.jfootball.views.MainScreen;
+import org.javahispano.jfootball.views.MenuScreen;
+import org.javahispano.jfootball.views.PreferencesScreen;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.audio.Music;
@@ -79,5 +84,9 @@ public class Jfootball extends Game {
 	public void dispose() {
 		playingSong.dispose();
 		myAssetManager.getManager().dispose();
+	}
+	
+	public MyAssetManager getMyAssetManager() {
+		return myAssetManager;
 	}
 }
