@@ -8,6 +8,7 @@ import com.badlogic.gdx.assets.loaders.SkinLoader.SkinParameter;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
 /**
@@ -16,44 +17,72 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
  */
 public class MyAssetManager {
 	public final AssetManager manager = new AssetManager();
-	
+
 	// Textures
 	public final String playerImage = "images/player.png";
 	public final String enemyImage = "images/enemy.png";
-	
+
 	// Sounds
 	public final String boingSound = "sounds/boing.wav";
 	public final String pingSound = "sounds/ping.wav";
-	
+
 	// Music
 	public final String playingSong = "music/Rolemusic_-_pl4y1ng.mp3";
-	
+
 	// Skin
 	public final String skin = "skin/glassy-ui.json";
-	
-	public void queueAddSkin(){
+
+	// Ball
+	public final String ball = "models/soccerball_1_reducido.g3dj";
+
+	// Y-Bot
+	public final String yBot = "models/ybot_reducido_2.g3dj";
+
+	// Z-Bot
+	public final String zBot = "models/Soccer Penalty Kick_reducido.g3dj";
+
+	// Soccer
+	public final String soccer = "models/soccer.g3dj";
+
+	public void queueAddSkin() {
 		SkinParameter params = new SkinParameter("skin/glassy-ui.atlas");
 		manager.load(skin, Skin.class, params);
-		
+
 	}
-	
-	public void queueAddMusic(){
+
+	public void queueAddMusic() {
 		manager.load(playingSong, Music.class);
 	}
-	
-	public void queueAddSounds(){
+
+	public void queueAddSounds() {
 		manager.load(boingSound, Sound.class);
 		manager.load(pingSound, Sound.class);
 	}
-	
-	public void queueAddImages(){
+
+	public void queueAddImages() {
 		manager.load(playerImage, Texture.class);
 		manager.load(enemyImage, Texture.class);
 	}
+
+	public void queueAddSoccer() {
+		manager.load(soccer, Model.class);
+	}
 	
+	public void queueAddBall() {
+		manager.load(ball, Model.class);
+	}
+	
+	public void queueAddYBot() {
+		manager.load(yBot, Model.class);
+	}
+	
+	public void queueAddZBot() {
+		manager.load(zBot, Model.class);
+	}
+
 	// a small set of images used by the loading screen
-	public void queueAddLoadingImages(){
-		
+	public void queueAddLoadingImages() {
+
 	}
 
 	/**
@@ -104,6 +133,5 @@ public class MyAssetManager {
 	public String getSkin() {
 		return skin;
 	}
-	
-	
+
 }
