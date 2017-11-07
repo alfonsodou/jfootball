@@ -133,5 +133,12 @@ public class MyAssetManager {
 	public String getSkin() {
 		return skin;
 	}
-
+	
+	public String getSoccer() {
+		return soccer;
+	}
+	
+	public String getBall() {
+		return ball;
+	}
 }

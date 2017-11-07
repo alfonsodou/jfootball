@@ -45,10 +45,9 @@ public class Jfootball extends Game {
 		// loading.
 		myAssetManager.getManager().finishLoading();
 		// loads the 2 sounds we use
-		playingSong = myAssetManager.getPlayingSong();
+		//playingSong = myAssetManager.getPlayingSong();
 
-		playingSong.play();
-
+		//playingSong.play();
 	}
 
 	public void changeScreen(int screen) {
@@ -82,7 +81,7 @@ public class Jfootball extends Game {
 
 	@Override
 	public void dispose() {
-		playingSong.dispose();
+		//playingSong.dispose();
 		myAssetManager.getManager().dispose();
 	}
 	

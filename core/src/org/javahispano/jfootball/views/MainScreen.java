@@ -32,6 +32,7 @@ public class MainScreen implements Screen {
 	private CameraInputController cameraController;
 	private ModelBatch modelBatch;
 	private ModelInstance soccerInstance;
+	private ModelInstance ballInstance;
 
 	public MainScreen(Jfootball jfootball) {
 		parent = jfootball;
@@ -53,9 +54,11 @@ public class MainScreen implements Screen {
 		Gdx.input.setInputProcessor(cameraController);
 		
 		parent.getMyAssetManager().queueAddSoccer();
+		parent.getMyAssetManager().queueAddBall();
 		parent.getMyAssetManager().getManager().finishLoading();
-		loadSoccer(parent.getMyAssetManager().soccer);
-
+		soccerInstance = loadObject(parent.getMyAssetManager().getSoccer());
+		ballInstance = loadObject(parent.getMyAssetManager().getBall());
+		ballInstance.transform.setToTranslation(0.5f, 0.13f, 0f);
 	}
 
 	@Override
@@ -73,6 +76,7 @@ public class MainScreen implements Screen {
 
 		modelBatch.begin(camera);
 		modelBatch.render(soccerInstance, environment);
+		modelBatch.render(ballInstance, environment);
 		modelBatch.end();
 	}
 
@@ -102,8 +106,7 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-
+		modelBatch.dispose();
 	}
 
 	private void loadSoccer(String stringSoccer) {
@@ -116,6 +119,20 @@ public class MainScreen implements Screen {
 		for (Material mat : soccerInstance.materials) {
 			mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
 		}
+	}
+
+	private ModelInstance loadObject(String stringObject) {
+		Model model = parent.getMyAssetManager().getManager().get(stringObject, Model.class);
+		ModelInstance modelInstance = new ModelInstance(model);
+		for (Material mat : modelInstance.materials) {
+			mat.remove(IntAttribute.CullFace);
+		}
+
+		for (Material mat : modelInstance.materials) {
+			mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
+		}
+		
+		return modelInstance;
 	}
 
 }
