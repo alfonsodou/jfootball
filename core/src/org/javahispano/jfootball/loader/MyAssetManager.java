@@ -141,4 +141,8 @@ public class MyAssetManager {
 	public String getBall() {
 		return ball;
 	}
+	
+	public String getZBot() {
+		return zBot;
+	}
 }

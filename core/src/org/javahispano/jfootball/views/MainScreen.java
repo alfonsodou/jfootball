@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 
 /**
@@ -33,6 +34,8 @@ public class MainScreen implements Screen {
 	private ModelBatch modelBatch;
 	private ModelInstance soccerInstance;
 	private ModelInstance ballInstance;
+	private ModelInstance zBotInstance;
+	private AnimationController controller;
 
 	public MainScreen(Jfootball jfootball) {
 		parent = jfootball;
@@ -44,7 +47,7 @@ public class MainScreen implements Screen {
 		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
 		camera = new PerspectiveCamera(FOV, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		camera.position.set(0f, 4f, 9f);
+		camera.position.set(0f, 3f, 2f);
 		camera.lookAt(0f, 0, 0);
 		camera.near = 1f;
 		camera.far = 300f;
@@ -55,10 +58,25 @@ public class MainScreen implements Screen {
 		
 		parent.getMyAssetManager().queueAddSoccer();
 		parent.getMyAssetManager().queueAddBall();
+		parent.getMyAssetManager().queueAddZBot();
 		parent.getMyAssetManager().getManager().finishLoading();
 		soccerInstance = loadObject(parent.getMyAssetManager().getSoccer());
 		ballInstance = loadObject(parent.getMyAssetManager().getBall());
-		ballInstance.transform.setToTranslation(0.5f, 0.13f, 0f);
+		ballInstance.transform.setToTranslation(0f, 0.13f, 0f);
+		zBotInstance = loadObject(parent.getMyAssetManager().getZBot());
+		zBotInstance.transform.setToTranslation(0f, 0.1f, 0f);
+		
+		controller = new AnimationController(zBotInstance);
+        controller.setAnimation("mixamo.com", -1, new AnimationController.AnimationListener() {
+            @Override
+            public void onEnd(AnimationController.AnimationDesc animation) {
+            }
+
+            @Override
+            public void onLoop(AnimationController.AnimationDesc animation) {
+                Gdx.app.log("INFO","Animation Ended");
+            }
+        });
 	}
 
 	@Override
@@ -69,14 +87,17 @@ public class MainScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		cameraController.update();
-
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
+		cameraController.update();
+
+		controller.update(Gdx.graphics.getDeltaTime());
+		
 		modelBatch.begin(camera);
 		modelBatch.render(soccerInstance, environment);
 		modelBatch.render(ballInstance, environment);
+		modelBatch.render(zBotInstance, environment);
 		modelBatch.end();
 	}
 
@@ -107,18 +128,6 @@ public class MainScreen implements Screen {
 	@Override
 	public void dispose() {
 		modelBatch.dispose();
-	}
-
-	private void loadSoccer(String stringSoccer) {
-		Model soccer = parent.getMyAssetManager().getManager().get(stringSoccer, Model.class);
-		soccerInstance = new ModelInstance(soccer);
-		for (Material mat : soccerInstance.materials) {
-			mat.remove(IntAttribute.CullFace);
-		}
-
-		for (Material mat : soccerInstance.materials) {
-			mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
-		}
 	}
 
 	private ModelInstance loadObject(String stringObject) {
