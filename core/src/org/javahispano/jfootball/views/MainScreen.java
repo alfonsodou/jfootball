@@ -62,12 +62,12 @@ public class MainScreen implements Screen {
 		parent.getMyAssetManager().getManager().finishLoading();
 		soccerInstance = loadObject(parent.getMyAssetManager().getSoccer());
 		ballInstance = loadObject(parent.getMyAssetManager().getBall());
-		ballInstance.transform.setToTranslation(0f, 0.13f, 0f);
+		ballInstance.transform.setToTranslation(-0.2f, 0.13f, 0.5f);
 		zBotInstance = loadObject(parent.getMyAssetManager().getZBot());
 		zBotInstance.transform.setToTranslation(0f, 0.1f, 0f);
 		
 		controller = new AnimationController(zBotInstance);
-        controller.setAnimation("mixamo.com", -1, new AnimationController.AnimationListener() {
+        controller.setAnimation("mixamo.com", 5, new AnimationController.AnimationListener() {
             @Override
             public void onEnd(AnimationController.AnimationDesc animation) {
             }
