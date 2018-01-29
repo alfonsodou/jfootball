@@ -20,6 +20,8 @@ import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.AnimationController;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 
 /**
  * @author alfonso
@@ -55,7 +57,7 @@ public class MainScreen implements Screen {
 
 		cameraController = new CameraInputController(camera);
 		Gdx.input.setInputProcessor(cameraController);
-		
+
 		parent.getMyAssetManager().queueAddSoccer();
 		parent.getMyAssetManager().queueAddBall();
 		parent.getMyAssetManager().queueAddZBot();
@@ -65,18 +67,18 @@ public class MainScreen implements Screen {
 		ballInstance.transform.setToTranslation(-0.2f, 0.13f, 0.5f);
 		zBotInstance = loadObject(parent.getMyAssetManager().getZBot());
 		zBotInstance.transform.setToTranslation(0f, 0.1f, 0f);
-		
-		controller = new AnimationController(zBotInstance);
-        controller.setAnimation("mixamo.com", 5, new AnimationController.AnimationListener() {
-            @Override
-            public void onEnd(AnimationController.AnimationDesc animation) {
-            }
 
-            @Override
-            public void onLoop(AnimationController.AnimationDesc animation) {
-                Gdx.app.log("INFO","Animation Ended");
-            }
-        });
+		controller = new AnimationController(zBotInstance);
+		controller.setAnimation("mixamo.com", 5, new AnimationController.AnimationListener() {
+			@Override
+			public void onEnd(AnimationController.AnimationDesc animation) {
+			}
+
+			@Override
+			public void onLoop(AnimationController.AnimationDesc animation) {
+				Gdx.app.log("INFO", "Animation Ended");
+			}
+		});
 	}
 
 	@Override
@@ -93,7 +95,17 @@ public class MainScreen implements Screen {
 		cameraController.update();
 
 		controller.update(Gdx.graphics.getDeltaTime());
-		
+		/* Make sure that you use a new Matrix4, otherwise you will 
+		   change the models transform, which we don't want to do. */
+		Matrix4 modelTransform = new Matrix4();
+		modelTransform.set(zBotInstance.transform);
+		/* Multiply the transform with the combined matrix of the camera. */
+		modelTransform.mul(camera.combined);
+		/* Extract the position as usual. */
+		Vector3 position;
+		position = zBotInstance.transform.getTranslation(new Vector3());
+		System.out.println(position.x + " :: " + position.y + " :: " + position.z);
+
 		modelBatch.begin(camera);
 		modelBatch.render(soccerInstance, environment);
 		modelBatch.render(ballInstance, environment);
@@ -140,7 +152,7 @@ public class MainScreen implements Screen {
 		for (Material mat : modelInstance.materials) {
 			mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
 		}
-		
+
 		return modelInstance;
 	}
 

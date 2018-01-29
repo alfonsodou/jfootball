@@ -7,6 +7,6 @@ package org.javahispano.jfootball.core;
  * @author alfonso
  *
  */
-public class GoalKeeper {
+public class GoalKeeper extends MovingEntity {
 
 }
